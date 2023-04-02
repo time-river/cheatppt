@@ -21,15 +21,6 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-type AuthorizedRequest struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-}
-
-type LogoutRequest struct {
-	Username string `json:"username"`
-}
-
 type ResetRequest struct {
 	Username    string `json:"username"`
 	OldPassword string `json:"oldPassword"`

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"cheatppt/config"
+	"cheatppt/controller/mail"
 	msg "cheatppt/model/http"
 	"cheatppt/model/redis"
 	"cheatppt/model/sql"
@@ -120,17 +121,37 @@ func (l *Auth) UserLogin(req *msg.LoginRequest, clientIP *string) (*string, erro
 	return token, nil
 }
 
-func (l *Auth) UserAuthorized(tokenString *string, username *string) error {
+func (l *Auth) UserAuthorized(tokenString *string) (*string, error) {
 	rds := redis.RedisCtxCreate()
 	result, err := rds.TokenVerify(*tokenString)
-	if err != nil || *username != *result {
-		return errors.New("No authorization")
+	if err != nil {
+		return nil, errors.New("No authorization")
 	}
 
-	return nil
+	return result, nil
 }
 
 func (l *Auth) UserLogout(token *string) {
 	rds := redis.RedisCtxCreate()
 	rds.TokenRevoke(*token)
+}
+
+func (l *Auth) EmailVerfiy(token *string) error {
+	username, err := l.UserAuthorized(token)
+	if err != nil {
+		return errors.New("Bad Token")
+	}
+
+	sql := sql.SQLCtxCreate()
+	user, err := sql.UserInfoFind(username)
+	if err != nil {
+		return errors.New("Internal error")
+	} else if user.EmailVerified {
+		return errors.New("Bad request")
+	}
+
+	if err := mail.EmailVerificationSend(*username, user.Email); err != nil {
+		return errors.New("Internal error")
+	}
+	return nil
 }

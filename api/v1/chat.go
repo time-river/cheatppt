@@ -15,9 +15,9 @@ func ListModels(c *gin.Context) {
 	code := http.StatusUnauthorized
 	token := c.Request.Header.Get("Token")
 	auth := auth.AuthCtxCreate()
-	if err := auth.UserAuthorized(&token, nil); err == nil {
+	if _, err := auth.UserAuthorized(&token); err == nil {
 		code = http.StatusOK
-		resp.Models = chat.ListModels()
+		resp.Models = chat.UserLogout()
 	}
 
 	c.JSON(code, &resp)

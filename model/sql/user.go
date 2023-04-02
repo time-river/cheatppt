@@ -11,6 +11,14 @@ func (s *Sql) UserCreate(user *db.User) error {
 	return result.Error
 }
 
+func (s *Sql) UserInfoFind(username *string) (*db.User, error) {
+	var user db.User
+
+	result := s.db.Where("username = ?", *username).First(&user)
+
+	return &user, result.Error
+}
+
 func (s *Sql) UsernameFind(username *string) bool {
 	return false
 }

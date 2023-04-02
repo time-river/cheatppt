@@ -26,12 +26,18 @@ type RedisCfg struct {
 	Lease  int64  `toml:"lease"`
 }
 
+type MailCfg struct {
+	Driver string `toml:"driver"`
+	ApiKey string `toml:"apikey"`
+}
+
 type Cfg struct {
 	Debug     bool         `toml:"debug"`
 	Server    ServerCfg    `toml:"http"`
 	ReCAPTCHA ReCAPTCHACfg `toml:"reCAPTCHA"`
 	DB        DBCfg        `toml:"database"`
 	Redis     RedisCfg     `toml:"redis"`
+	Mail      MailCfg      `toml:"mail"`
 }
 
 var GlobalCfg = Cfg{
@@ -57,6 +63,10 @@ var GlobalCfg = Cfg{
 		Passwd: "",
 		Db:     0,
 		Lease:  3600 * 24 * 3, /* 3 days */
+	},
+	Mail: MailCfg{
+		Driver: "sendgrid",
+		ApiKey: "",
 	},
 }
 

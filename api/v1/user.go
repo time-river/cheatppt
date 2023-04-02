@@ -84,22 +84,17 @@ func UserLogin(c *gin.Context) {
 }
 
 func UserAuthorized(c *gin.Context) {
-	var req msg.AuthorizedRequest
 	var msg = &msg.CommonResponse{}
 
-	if err := c.BindJSON(&req); err != nil {
-		msg.Message = err.Error()
-		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
-		return
-	}
-	if req.Username == "" || req.Token == "" {
-		msg.Message = "No username or token"
-		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
+	token := c.Request.Header.Get("Token")
+	if len(token) == 0 {
+		msg.Message = "No token"
+		c.AbortWithStatusJSON(http.StatusUnauthorized, msg)
 		return
 	}
 
 	auth := auth.AuthCtxCreate()
-	if err := auth.UserAuthorized(&req.Token, &req.Username); err != nil {
+	if _, err := auth.UserAuthorized(&token); err != nil {
 		msg.Message = err.Error()
 		c.AbortWithStatusJSON(http.StatusUnauthorized, msg)
 		return
@@ -109,26 +104,37 @@ func UserAuthorized(c *gin.Context) {
 	c.JSON(http.StatusOK, msg)
 }
 
+func EmailVerfiy(c *gin.Context) {
+	var msg = &msg.CommonResponse{}
+
+	token := c.Request.Header.Get("Token")
+	if len(token) == 0 {
+		msg.Message = "No token"
+		c.AbortWithStatusJSON(http.StatusUnauthorized, msg)
+		return
+	}
+
+	auth := auth.AuthCtxCreate()
+	if err := auth.EmailVerfiy(&token); err != nil {
+		msg.Message = err.Error()
+		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
+		return
+	}
+
+	msg.Message = "Success"
+	c.JSON(http.StatusOK, msg)
+}
+
 func UserLogout(c *gin.Context) {
-	/*
-		var req msg.LogoutRequest
+	token := c.Request.Header.Get("Token")
+	if len(token) == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, nil)
+		return
+	}
 
-
-				code := http.StatusBadRequest
-				err := c.BindJSON(&req)
-				if err == nil {
-					code = http.StatusUnauthorized
-					token := c.Request.Header.Get("Token")
-					auth := auth.AuthCtxCreate()
-					if auth.UserAuthenticate(&token) != nil {
-						auth.UserLogout(&token)
-						code = http.StatusOK
-					}
-				}
-
-
-			c.JSON(code, nil)
-	*/
+	auth := auth.AuthCtxCreate()
+	auth.UserLogout(&token)
+	c.JSON(http.StatusOK, nil)
 }
 
 func UserPasswordReset(c *gin.Context) {
