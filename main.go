@@ -1,13 +1,30 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+
+	"cheatppt/config"
+	"cheatppt/model/sql"
+	"cheatppt/router"
+)
+
+// TODO: log
 
 func main() {
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run() // listen and serve on 0.0.0.0:8080
+	config.CmdlineParse()
+
+	// TODO: env check
+	sql.DatabaseInit()
+
+	if !config.GlobalCfg.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	engine := gin.Default()
+	router.Initialize(engine)
+
+	addr := fmt.Sprintf("%s:%d", config.GlobalCfg.Server.Addr, config.GlobalCfg.Server.Port)
+	engine.Run(addr)
 }
