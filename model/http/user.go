@@ -21,6 +21,10 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type EmailVerificationRequest struct {
+	Email string `json:"email"`
+}
+
 type ResetRequest struct {
 	Username    string `json:"username"`
 	OldPassword string `json:"oldPassword"`

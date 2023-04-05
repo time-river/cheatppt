@@ -2,7 +2,6 @@ package api
 
 import (
 	"cheatppt/controller/auth"
-	"cheatppt/controller/chat"
 	model "cheatppt/model/http"
 	"net/http"
 
@@ -17,7 +16,7 @@ func ListModels(c *gin.Context) {
 	auth := auth.AuthCtxCreate()
 	if _, err := auth.UserAuthorized(&token); err == nil {
 		code = http.StatusOK
-		resp.Models = chat.UserLogout()
+		return
 	}
 
 	c.JSON(code, &resp)

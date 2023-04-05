@@ -105,6 +105,7 @@ func UserAuthorized(c *gin.Context) {
 }
 
 func EmailVerfiy(c *gin.Context) {
+	var req msg.EmailVerificationRequest
 	var msg = &msg.CommonResponse{}
 
 	token := c.Request.Header.Get("Token")
@@ -114,8 +115,14 @@ func EmailVerfiy(c *gin.Context) {
 		return
 	}
 
+	if err := c.BindJSON(&req); err != nil {
+		msg.Message = "Bad request"
+		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
+		return
+	}
+
 	auth := auth.AuthCtxCreate()
-	if err := auth.EmailVerfiy(&token); err != nil {
+	if err := auth.EmailVerfiy(&token, &req.Email); err != nil {
 		msg.Message = err.Error()
 		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
 		return

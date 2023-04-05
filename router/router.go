@@ -26,7 +26,7 @@ func Initialize(router *gin.Engine) {
 		apiv1.POST(register, api.UserRegister)
 		apiv1.POST(login, api.UserLogin)
 		apiv1.GET(authorized, api.UserAuthorized)
-		apiv1.GET(emailVerfiy, api.EmailVerfiy)
+		apiv1.POST(emailVerfiy, api.EmailVerfiy)
 		apiv1.POST(reset, api.UserPasswordReset)
 		apiv1.GET(logout, api.UserLogout)
 		apiv1.POST(chatProcess, api.ChatProcess)

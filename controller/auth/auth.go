@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"errors"
+	"regexp"
 	"sync"
 
 	"cheatppt/config"
@@ -73,7 +74,7 @@ func (l *Auth) UserRegister(req *msg.RegisterRequest, clientIP *string) error {
 		Username:      req.Username,
 		Email:         req.Email,
 		Password:      l.digest.digest(&req.Password),
-		Level:         100,
+		Level:         1000,
 		EmailVerified: false,
 	}
 	if err := sql.UserCreate(&user); err != nil {
@@ -136,7 +137,17 @@ func (l *Auth) UserLogout(token *string) {
 	rds.TokenRevoke(*token)
 }
 
-func (l *Auth) EmailVerfiy(token *string) error {
+func emailCheck(email *string) bool {
+	const pattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	match, _ := regexp.MatchString(pattern, *email)
+	return match
+}
+
+func (l *Auth) EmailVerfiy(token *string, email *string) error {
+	if !emailCheck(email) {
+		return errors.New("Bad email address")
+	}
+
 	username, err := l.UserAuthorized(token)
 	if err != nil {
 		return errors.New("Bad Token")
@@ -147,7 +158,7 @@ func (l *Auth) EmailVerfiy(token *string) error {
 	if err != nil {
 		return errors.New("Internal error")
 	} else if user.EmailVerified {
-		return errors.New("Bad request")
+		return errors.New("Email has been verified")
 	}
 
 	if err := mail.EmailVerificationSend(*username, user.Email); err != nil {
