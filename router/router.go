@@ -1,9 +1,10 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-
+	apiv0 "cheatppt/api/v0"
 	"cheatppt/api/v1"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -17,9 +18,26 @@ const (
 	listModels  = "/list-models"
 )
 
-func Initialize(router *gin.Engine) {
+const (
+	chatgptWebConfig      = "/config"
+	chatgptWebChatProcess = "/chat-process"
+	chatgptWebSession     = "/session"
+	chatgptWebVerify      = "/verify"
+)
 
+func Initialize(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
+
+	/* v2 just for no-authorization request */
+	rv0 := router.Group("/api/v0")
+	{
+		rv0.POST(chatgptWebVerify, apiv0.ChatgptWebVerify)
+		rv0.POST(chatgptWebSession, apiv0.ChatgptWebSession)
+
+		rv0.Use(apiv0.ChatgptWebAuth)
+		rv0.POST(chatgptWebChatProcess, apiv0.ChatgptWebChatProcess)
+		rv0.POST(chatgptWebConfig, apiv0.ChatgptWebConfig)
+	}
 
 	apiv1 := router.Group("/api/v1")
 	{

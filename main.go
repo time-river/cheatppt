@@ -23,6 +23,7 @@ func main() {
 	}
 
 	engine := gin.Default()
+	engine.Use(gin.Logger())
 	router.Initialize(engine)
 
 	addr := fmt.Sprintf("%s:%d", config.GlobalCfg.Server.Addr, config.GlobalCfg.Server.Port)

@@ -31,13 +31,25 @@ type MailCfg struct {
 	ApiKey string `toml:"apikey"`
 }
 
+type ChatgptWebCfg struct {
+	ApiModel        string `toml:"api-model"`
+	TimeoutMs       uint64 `toml:"timeout"`
+	ReverseProxyUrl string `toml:"reverse-proxy-url"`
+	SocksProxy      string `toml:"socks-proxy"`
+	HttpsProxy      string `toml:"https-proxy"`
+	OpenaiApiBase   string `toml:"openai-api-base"`
+	OpenaiApiToken  string `toml:"openai-api-token"`
+	AuthSecretKey   string `toml:"auth-secret-key"`
+}
+
 type Cfg struct {
-	Debug     bool         `toml:"debug"`
-	Server    ServerCfg    `toml:"http"`
-	ReCAPTCHA ReCAPTCHACfg `toml:"reCAPTCHA"`
-	DB        DBCfg        `toml:"database"`
-	Redis     RedisCfg     `toml:"redis"`
-	Mail      MailCfg      `toml:"mail"`
+	Debug      bool          `toml:"debug"`
+	Server     ServerCfg     `toml:"http"`
+	ReCAPTCHA  ReCAPTCHACfg  `toml:"reCAPTCHA"`
+	DB         DBCfg         `toml:"database"`
+	Redis      RedisCfg      `toml:"redis"`
+	Mail       MailCfg       `toml:"mail"`
+	ChatgptWeb ChatgptWebCfg `toml:"chatgpt-web"`
 }
 
 var GlobalCfg = Cfg{
@@ -67,6 +79,16 @@ var GlobalCfg = Cfg{
 	Mail: MailCfg{
 		Driver: "sendgrid",
 		ApiKey: "",
+	},
+	ChatgptWeb: ChatgptWebCfg{
+		ApiModel:        "text-davinci-002-render-sha",
+		TimeoutMs:       0,
+		ReverseProxyUrl: "https://openai.vvl.me:8443/chat/api/conversation",
+		SocksProxy:      "-",
+		HttpsProxy:      "-",
+		OpenaiApiBase:   "https://api.openai.com",
+		OpenaiApiToken:  "",
+		AuthSecretKey:   "",
 	},
 }
 
