@@ -197,21 +197,17 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		return
 	}
 
-	//firstChunk := true
+	firstChunk := true
 	params := &RequestOptions{
 		message:     req.Prompt,
 		lastContext: req.Options,
 		process: func(chat revchatgpt.ChatMessage) {
-			c.JSON(http.StatusOK, &chat)
-			/*
-				if firstChunk {
-					c.JSON(http.StatusOK, &chat)
-				} else if data, err := json.Marshal(chat); err == nil {
-					//c.String(http.StatusOK, fmt.Sprintf("\n%s", data))
-					c.JSON(http.StatusOK, &chat)
-				} // ignore others
-			*/
-			//firstChunk = false
+			if firstChunk {
+				c.JSON(http.StatusOK, &chat)
+			} else if data, err := json.Marshal(chat); err == nil {
+				c.String(http.StatusOK, fmt.Sprintf("\n%s", data))
+			} // ignore others
+			firstChunk = false
 		},
 		systemMessage: req.SystemMessage,
 	}
