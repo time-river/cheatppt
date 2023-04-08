@@ -97,6 +97,7 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 			}
 		},
 		validator: func(c *sse.Client, resp *http.Response) error {
+
 			if resp.StatusCode != http.StatusOK {
 				reason, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
@@ -116,8 +117,7 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 		},
 	}
 
-	api.debug("[%s] URL %s HEADER %v BODY %s\n",
-		options.method, options.url, options.headers, options.body)
+	api.debug("[%s] URL %s BODY %s\n", options.method, options.url, options.body)
 
 	err := fetchSSE(options)
 	if err != nil {

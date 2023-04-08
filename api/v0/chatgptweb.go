@@ -142,8 +142,14 @@ func ChatgptWebSession(c *gin.Context) {
 	c.JSON(http.StatusOK, msg)
 }
 
-var onceConf sync.Once
 var api *revchatgpt.ChatGPTUnofficialProxyAPI
+var onceConf sync.Once
+
+/**
+ * OpenAI disable the concurrent requests, otherwise
+ * reports error: Only one message at a time.
+ */
+var mu sync.Mutex
 
 func chatReplyProcess(params *RequestOptions) *CommonResponse {
 	conf := config.GlobalCfg.ChatgptWeb
@@ -168,20 +174,25 @@ func chatReplyProcess(params *RequestOptions) *CommonResponse {
 		TimeoutMs:       conf.TimeoutMs,
 	}
 
-	if _, err := api.SendMessage(params.message, opts); err != nil {
-		var msg = &CommonResponse{
-			Status: "Fail",
-		}
+	{
+		mu.Lock()
+		defer mu.Unlock()
 
-		code := err.StatusCode
-		if value, ok := ErrorCodeMessage[code]; ok {
-			msg.Message = value
-		} else if len(err.StatusText) > 0 {
-			msg.Message = err.StatusText
-		} else {
-			msg.Message = "Please check the back-end console"
+		if _, err := api.SendMessage(params.message, opts); err != nil {
+			var msg = &CommonResponse{
+				Status: "Fail",
+			}
+
+			code := err.StatusCode
+			if value, ok := ErrorCodeMessage[code]; ok {
+				msg.Message = value
+			} else if len(err.StatusText) > 0 {
+				msg.Message = err.StatusText
+			} else {
+				msg.Message = "Please check the back-end console"
+			}
+			return msg
 		}
-		return msg
 	}
 
 	return nil
