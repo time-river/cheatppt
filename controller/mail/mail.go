@@ -42,7 +42,7 @@ func EmailVerificationSend(username string, email string) error {
 }
 
 func PasswdResetSend() {
-	conf := config.GlobalCfg.Mail
-	_ = sendgrid.GetRequest(conf.ApiKey, "/v3/mail/send")
+	//conf := config.GlobalCfg.Mail
+	//_ = sendgrid.GetRequest(conf.ApiKey, "/v3/mail/send")
 	return
 }
