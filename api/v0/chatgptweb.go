@@ -216,6 +216,7 @@ func ChatgptWebChatProcess(c *gin.Context) {
 			if firstChunk {
 				c.JSON(http.StatusOK, &chat)
 			} else if data, err := json.Marshal(chat); err == nil {
+				// `\n` as seperator in the frontend
 				c.String(http.StatusOK, fmt.Sprintf("\n%s", data))
 			} // ignore others
 			firstChunk = false
@@ -223,6 +224,11 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		systemMessage: req.SystemMessage,
 	}
 
+	// FIXME: what about error occurs after some part has beed parsed?
+	// Already know: if the null at the last of response body, empty the
+	// response message at the frontend
 	msg := chatReplyProcess(params)
-	c.JSON(http.StatusOK, msg)
+	if msg != nil {
+		c.JSON(http.StatusOK, msg)
+	}
 }

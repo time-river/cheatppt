@@ -26,10 +26,14 @@ var _ = error.Error(&ChatGPTError{})
 type PartialResponser func(partialResponse ChatMessage)
 
 type SendMessageBrowserOptions struct {
-	ConversationId  string
-	ParentMessageId string
-	MessageId       string
-	Action          string /* 'next' | 'variant' */
+	/* `*Id`` can do not exist:
+	 * - exist: not nil
+	 * - not exist: nil
+	 */
+	ConversationId  *string
+	ParentMessageId *string
+	MessageId       *string
+	Action          *string /* 'next' | 'variant' */
 	TimeoutMs       uint64
 	OnProgress      PartialResponser
 }
@@ -44,7 +48,7 @@ type ChatMessage struct {
 	// relevant for both ChatGPTAPI and ChatGPTUnofficialProxyAPI
 	ParentMessageId string `json:"parentMessageId,omitempty"`
 	// only relevant for ChatGPTUnofficialProxyAPI (optional for ChatGPTAPI)
-	ConversationId string `json:"conversationId,omitempty"`
+	ConversationId *string `json:"conversationId,omitempty"`
 }
 
 /* OpenAI request body format defination */
@@ -55,7 +59,7 @@ type PromptContent struct {
 }
 
 type PromptAuthor struct {
-	Role string `json:"role"`
+	Role string `json:"role"` // 'user' | 'assistant' | 'system'
 }
 
 type Prompt struct {
@@ -69,7 +73,7 @@ type ConversationJSONBody struct {
 	Messages          []Prompt `json:"messages"`
 	ParentMessageId   string   `json:"parent_message_id"`
 	Model             string   `json:"model"`
-	ConverationId     string   `json:"conversation_id"`
+	ConverationId     *string  `json:"conversation_id,omitempty"`
 	TimezoneOffsetMin int      `json:"timezone_offset_min"` // always 0 ?
 }
 
@@ -108,7 +112,7 @@ type Message struct {
 }
 
 type ConversationResponseEvent = struct {
-	Message        Message     `json:"message"`
-	ConversationId string      `json:"conversation_id"`
-	Error          interface{} `json:"error"`
+	Message        Message     `json:"message,omitempty"`
+	ConversationId *string     `json:"conversation_id,omitempty"`
+	Error          interface{} `json:"error,omitempty"`
 }

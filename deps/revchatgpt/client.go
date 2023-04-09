@@ -52,8 +52,8 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 	var result = &ChatMessage{
 		Role:            "assistant",
 		Id:              uuidv4(),
-		ParentMessageId: opts.MessageId,
-		ConversationId:  "",
+		ParentMessageId: *opts.MessageId,
+		ConversationId:  opts.ConversationId,
 		Text:            "",
 	}
 
@@ -72,11 +72,11 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 
 			var convoResponseEvent ConversationResponseEvent
 			if err := json.Unmarshal(msg.Data, &convoResponseEvent); err != nil {
-				api.debug("%s\n", err.Error())
+				api.debug("json.Unmarshal error: %s, body: %s\n", err.Error(), msg.Data)
 				return
 			}
 
-			if len(convoResponseEvent.ConversationId) > 0 {
+			if convoResponseEvent.ConversationId != nil {
 				result.ConversationId = convoResponseEvent.ConversationId
 			}
 
@@ -124,7 +124,7 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 		},
 	}
 
-	api.debug("[%s] URL %s BODY %s\n", options.method, options.url, options.body)
+	api.debug("POST %s\n  body: %s\n  headers: %s\n", options.url, options.body, options.headers)
 
 	err := fetchSSE(options)
 	if err != nil {
@@ -143,10 +143,8 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 }
 
 func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageBrowserOptions) (*ChatMessage, *ChatGPTError) {
-	ci := len(opts.ConversationId)
-	pi := len(opts.ParentMessageId)
 
-	if (ci == 0 && pi != 0) || (ci != 0 && pi == 0) {
+	if (opts.ConversationId == nil && opts.ParentMessageId != nil) || (opts.ConversationId != nil && opts.ParentMessageId == nil) {
 		err := &ChatGPTError{
 			StatusCode: 0,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: conversationId and parentMessageId must both be set or both be undefined",
@@ -154,7 +152,7 @@ func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageB
 		return nil, err
 	}
 
-	if len(opts.ConversationId) > 0 && !isValidUUIDv4(opts.ConversationId) {
+	if opts.ConversationId != nil && !isValidUUIDv4(*opts.ConversationId) {
 		err := &ChatGPTError{
 			StatusCode: 1,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: conversationId is not a valid v4 UUID",
@@ -162,7 +160,7 @@ func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageB
 		return nil, err
 	}
 
-	if len(opts.ParentMessageId) > 0 && !isValidUUIDv4(opts.ParentMessageId) {
+	if opts.ParentMessageId != nil && !isValidUUIDv4(*opts.ParentMessageId) {
 		err := &ChatGPTError{
 			StatusCode: 2,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: parentMessageId is not a valid v4 UUID",
@@ -170,7 +168,7 @@ func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageB
 		return nil, err
 	}
 
-	if len(opts.MessageId) > 0 && !isValidUUIDv4(opts.MessageId) {
+	if opts.MessageId != nil && !isValidUUIDv4(*opts.MessageId) {
 		err := &ChatGPTError{
 			StatusCode: 3,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: messageId is not a valid v4 UUID",
@@ -178,11 +176,60 @@ func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageB
 		return nil, err
 	}
 
+	/* both of conversationId and parentMessageId are undefined */
+	if opts.ParentMessageId == nil {
+		uuid := uuidv4()
+		opts.ParentMessageId = &uuid
+	}
+
+	if opts.MessageId == nil {
+		uuid := uuidv4()
+		opts.MessageId = &uuid
+	}
+
+	if opts.Action == nil {
+		action := "next"
+		opts.Action = &action
+	}
+
+	// Body example:
+	//
+	//   first chat:
+	//     body: {
+	//    	  action: 'next',
+	//    	  messages: [ [Object] ],
+	//    	  model: 'gpt-4',
+	//    	  parent_message_id: '4436c401-1da3-4375-88fa-b2a5f6efbb3d'
+	//      },
+	//
+	//   the following:
+	//     body: {
+	//	      action: 'next',
+	//	      messages: [ [Object] ],
+	//	      model: 'gpt-4',
+	//	      parent_message_id: 'a6638807-f58a-43e3-9aa5-70dec9623f81',
+	//	      conversation_id: 'b08ea722-9c4f-4ecf-b4c5-4a5da0f0ff7e'
+	//      },
+	//     body: {
+	//    	  action: 'next',
+	//    	  messages: [ [Object] ],
+	//    	  model: 'gpt-4',
+	//    	  parent_message_id: '8f0c2874-a471-471d-90f9-524677945a47',
+	//    	  conversation_id: 'b08ea722-9c4f-4ecf-b4c5-4a5da0f0ff7e'
+	//      },
+	//     body: {
+	//    	  action: 'next',
+	//    	  messages: [ [Object] ],
+	//    	  model: 'gpt-4',
+	//    	  parent_message_id: 'f1a6a62b-2e93-47b3-8b34-6774a88dd00b',
+	//    	  conversation_id: 'b08ea722-9c4f-4ecf-b4c5-4a5da0f0ff7e'
+	//      },
+
 	rawBody := ConversationJSONBody{
-		Action: "next",
+		Action: *opts.Action,
 		Messages: []Prompt{
 			{
-				Id: uuidv4(),
+				Id: *opts.MessageId,
 				Author: PromptAuthor{
 					Role: "user",
 				},
@@ -193,11 +240,13 @@ func (api *ChatGPTUnofficialProxyAPI) SendMessage(text string, opts SendMessageB
 			},
 		},
 		Model:           api.model,
-		ParentMessageId: opts.ParentMessageId,
+		ParentMessageId: *opts.ParentMessageId,
 	}
 
-	if opts.ConversationId != "" {
-		rawBody.ConverationId = opts.ConversationId
+	if opts.ConversationId != nil {
+		// create new one to prevent user action
+		new := *opts.ConversationId
+		rawBody.ConverationId = &new
 	}
 
 	body, err := json.Marshal(rawBody)

@@ -53,13 +53,13 @@ type SessionResponse struct {
 }
 
 type ChatContext struct {
-	ConversationId  string `json:"conversationId"`
-	ParentMessageId string `json:"parentMessageId"`
+	ConversationId  *string `json:"conversationId,omitempty"`
+	ParentMessageId *string `json:"parentMessageId,omitempty"`
 }
 
 type RequestProps struct {
 	Prompt        string      `json:"prompt"`
-	Options       ChatContext `json:"options"`
+	Options       ChatContext `json:"options,omitempty"` /* algouth omit it, it's value still non-nil */
 	SystemMessage string      `json:"SystemMessage"`
 }
 
