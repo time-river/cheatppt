@@ -1,48 +1,34 @@
 package mail
 
 import (
-	"cheatppt/config"
 	"fmt"
-	"log"
+
+	"cheatppt/config"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-func EmailVerificationSend(username string, email string) error {
-	conf := config.GlobalCfg.Mail
-	from := mail.NewEmail("No Reply", "noreply@example.com")
-	subject := "Sending with SendGrid is Fun"
-	to := mail.NewEmail(username, email)
-	plainTextContent := "and easy to do anywhere, even with Go"
-	htmlContent := `
-	Hi [name],
-	
-	Thanks for getting started with our [customer portal]!
-	
-	We need a little more information to complete your registration, including a confirmation of your email address.
-	
-	Click below to confirm your email address:
-	
-	[link]
-	
-	If you have problems, please paste the above URL into your web browser.`
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(conf.ApiKey)
-	response, err := client.Send(message)
-	if err != nil {
-		log.Println(err)
-	} else {
-		fmt.Println(response.StatusCode)
-		fmt.Println(response.Body)
-		fmt.Println(response.Headers)
-	}
-
-	return nil
+type CodeCtx struct {
+	Username string
+	Email    string
+	Code     string
+	ValidMin int
 }
 
-func PasswdResetSend() {
-	//conf := config.GlobalCfg.Mail
-	//_ = sendgrid.GetRequest(conf.ApiKey, "/v3/mail/send")
-	return
+func SendCode(ctx *CodeCtx) error {
+	conf := config.Mail
+
+	subject := "邮箱验证邮件"
+	from := mail.NewEmail(subject, conf.Sender)
+	to := mail.NewEmail(ctx.Username, ctx.Email)
+	htmlContent := fmt.Sprintf("<p>您好，您正在进行%s邮箱验证。</p>"+
+		"<p>您的验证码为: <strong>%s</strong></p>"+
+		"<p>验证码 %d 分钟内有效，如果不是本人操作，请忽略。</p>",
+		ctx.Username, ctx.Code, ctx.ValidMin)
+	message := mail.NewSingleEmail(from, subject, to, "", htmlContent)
+	client := sendgrid.NewSendClient(conf.ApiKey)
+	_, err := client.Send(message)
+
+	return err
 }

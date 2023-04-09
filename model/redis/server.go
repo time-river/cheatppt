@@ -10,29 +10,32 @@ import (
 )
 
 type Redis struct {
-	client *redis.Client
-	lease  time.Duration
+	conn  *redis.Conn
+	lease time.Duration
 }
 
 var onceConf sync.Once
 var rds *Redis
 
-func RedisCtxCreate() *Redis {
+func NewRedisCient() *Redis {
 	conf := config.GlobalCfg.Redis
 	options := &redis.Options{
 		Addr:     conf.Addr,
 		Password: conf.Passwd,
 		DB:       conf.Db,
 	}
-	rdb := redis.NewClient(options)
+	rdb := redis.NewClient(options).Conn()
+
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
+		panic(err.Error())
+	}
 
 	if rds == nil {
 		onceConf.Do(func() {
 			rds = &Redis{
-				client: rdb,
-				lease:  time.Duration(60 * int64(time.Second)), // TODO: seconds?
+				conn:  rdb,
+				lease: time.Duration(60 * int64(time.Second)),
 			}
-			// TODO: connect test
 		})
 	}
 	return rds

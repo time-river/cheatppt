@@ -1,0 +1,79 @@
+From 5a1a81f4435490d4868a24c4e7029119f79f1129 Mon Sep 17 00:00:00 2001
+From: "fu.lin" <linfu@autox.ai>
+Date: Mon, 24 Apr 2023 12:45:53 +0800
+Subject: [PATCH 1/1] path session
+
+---
+ api/v0/chatgptweb.go | 18 ++++++++++++++++++
+ api/v0/types.go      |  4 ++++
+ router/router.go     | 10 ++++++----
+ 3 files changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/api/v0/chatgptweb.go b/api/v0/chatgptweb.go
+index ca5ef31..757f540 100644
+--- a/api/v0/chatgptweb.go
++++ b/api/v0/chatgptweb.go
+@@ -260,3 +260,21 @@ func ChatgptWebChatProcess(c *gin.Context) {
+ 		c.JSON(http.StatusOK, msg)
+ 	}
+ }
++
++func RefreshSession(c *gin.Context) {
++	var req RefreshRequest
++	var msg = &CommonResponse{}
++
++	if err := c.BindJSON(&req); err != nil {
++		msg.Status = "Fail"
++		msg.Message = "Bad Request"
++		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
++		return
++	}
++
++	conf := config.GlobalCfg.ChatgptWeb
++	conf.AuthSecretKey = req.Token
++
++	msg.Status = "Success"
++	c.JSON(http.StatusOK, msg)
++}
+diff --git a/api/v0/types.go b/api/v0/types.go
+index c1982a4..3a1907e 100644
+--- a/api/v0/types.go
++++ b/api/v0/types.go
+@@ -69,3 +69,7 @@ var ErrorCodeMessage = map[int]string{
+ 	504: "[OpenAI] 网关超时 | Gateway Time-out",
+ 	500: "[OpenAI] 服务器繁忙，请稍后再试 | Internal Server Error",
+ }
++
++type RefreshRequest struct {
++	Token string `json:"token"`
++}
+diff --git a/router/router.go b/router/router.go
+index a4553fa..4953a1f 100644
+--- a/router/router.go
++++ b/router/router.go
+@@ -19,10 +19,11 @@ const (
+ )
+ 
+ const (
+-	chatgptWebConfig      = "/config"
+-	chatgptWebChatProcess = "/chat-process"
+-	chatgptWebSession     = "/session"
+-	chatgptWebVerify      = "/verify"
++	chatgptWebConfig         = "/config"
++	chatgptWebChatProcess    = "/chat-process"
++	chatgptWebSession        = "/session"
++	chatgptWebVerify         = "/verify"
++	chatgptWebRefreshSession = "/refresh-session"
+ )
+ 
+ func Initialize(router *gin.Engine) {
+@@ -38,6 +39,7 @@ func Initialize(router *gin.Engine) {
+ 		chatgptweb.Use(apiv0.ChatgptWebAuth)
+ 		chatgptweb.POST(chatgptWebChatProcess, apiv0.ChatgptWebChatProcess)
+ 		chatgptweb.POST(chatgptWebConfig, apiv0.ChatgptWebConfig)
++		chatgptweb.PATCH(chatgptWebRefreshSession, apiv0.RefreshSession)
+ 	}
+ 
+ 	//apiv1 := router.Group("/api/v1")
+-- 
+2.34.1

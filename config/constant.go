@@ -7,8 +7,7 @@ type ServerCfg struct {
 }
 
 type ReCAPTCHACfg struct {
-	Enable bool   `toml:"enable"`
-	Server string `toml:"server"`
+	Host   string `toml:"server"`
 	Secret string `toml:"secret"`
 }
 
@@ -27,8 +26,8 @@ type RedisCfg struct {
 }
 
 type MailCfg struct {
-	Driver string `toml:"driver"`
 	ApiKey string `toml:"apikey"`
+	Sender string `toml:"sender"`
 }
 
 type ChatgptWebCfg struct {
@@ -51,7 +50,7 @@ type LogCfg struct {
 type Cfg struct {
 	Log        LogCfg        `toml:"debug"`
 	Server     ServerCfg     `toml:"http"`
-	ReCAPTCHA  ReCAPTCHACfg  `toml:"reCAPTCHA"`
+	Code       ReCAPTCHACfg  `toml:"code"`
 	DB         DBCfg         `toml:"database"`
 	Redis      RedisCfg      `toml:"redis"`
 	Mail       MailCfg       `toml:"mail"`
@@ -68,10 +67,10 @@ var GlobalCfg = Cfg{
 		Port:   8080,
 		Secret: "",
 	},
-	ReCAPTCHA: ReCAPTCHACfg{
-		Enable: false,
-		Server: "https://www.google.com/recaptcha/api/siteverify",
-		Secret: "",
+	Code: ReCAPTCHACfg{
+		// https://developers.google.com/recaptcha/docs/faq?hl=zh-cn
+		Host:   "www.recaptcha.net",
+		Secret: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
 	},
 	DB: DBCfg{
 		Driver: "sqlite3",
@@ -86,8 +85,8 @@ var GlobalCfg = Cfg{
 		Lease:  3600 * 24 * 3, /* 3 days */
 	},
 	Mail: MailCfg{
-		Driver: "sendgrid",
 		ApiKey: "",
+		Sender: "noreply@cheatppt.icu",
 	},
 	ChatgptWeb: ChatgptWebCfg{
 		ApiModel:        "text-davinci-002-render-sha",
@@ -103,3 +102,7 @@ var GlobalCfg = Cfg{
 
 var GlobalKey [32]byte
 var LogOpts = &GlobalCfg.Log
+
+var Server = &GlobalCfg.Server
+var Code = &GlobalCfg.Code
+var Mail = &GlobalCfg.Mail

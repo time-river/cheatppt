@@ -6,21 +6,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Sql struct {
-	db *gorm.DB
-}
-
 var onceConf sync.Once
-var sql *Sql
+var db *gorm.DB
 
-func SQLCtxCreate() *Sql {
-	if sql == nil {
+func NewSQLClient() *gorm.DB {
+	if db == nil {
 		onceConf.Do(func() {
-			sql = &Sql{
-				db: dbConnect(),
-			}
+			db = dbConnect()
 		})
 	}
 
-	return sql
+	return db
+}
+
+func DatabaseInit() {
+	userTableInit()
+	modelTableInit()
 }
