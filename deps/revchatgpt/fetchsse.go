@@ -30,5 +30,8 @@ func fetchSSE(opts *sseOptions) error {
 		c.Body = bytes.NewReader(opts.body)
 	})
 
-	return client.SubscribeRaw(opts.subscriber)
+	// FIXME: need notify when error ?
+
+	err := client.SubscribeRaw(opts.subscriber)
+	return err
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/r3labs/sse/v2"
+	"gopkg.in/cenkalti/backoff.v1"
 )
 
 func isValidUUIDv4(str string) bool {
@@ -99,6 +100,10 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 		validator: func(c *sse.Client, resp *http.Response) error {
 
 			if resp.StatusCode != http.StatusOK {
+				// library won't close the socket manually, therefore
+				// we do that.
+				defer resp.Body.Close()
+
 				reason, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
 					reason = []byte(resp.Status)
@@ -107,11 +112,13 @@ func (api *ChatGPTUnofficialProxyAPI) send(body []byte, opts *SendMessageBrowser
 				msg := fmt.Sprintf("ChatGPT error %d: %s", resp.StatusCode, reason)
 				api.debug("%s\n", msg)
 
+				// returns a *PermanentError to prevent retry according the library comments.
+				// otherwise we should define `sse.Client.ReconnectStrategy`.
 				err = &ChatGPTError{
 					StatusCode: resp.StatusCode,
 					StatusText: msg,
 				}
-				return err
+				return backoff.Permanent(err)
 			}
 			return nil
 		},
