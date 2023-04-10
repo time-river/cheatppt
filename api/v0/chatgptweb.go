@@ -201,25 +201,34 @@ func chatReplyProcess(params *RequestOptions) *CommonResponse {
 func ChatgptWebChatProcess(c *gin.Context) {
 	var req RequestProps
 
-	c.Header("Content-Type", "application/octet-stream")
-
 	if err := c.BindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, nil)
 		return
 	}
+
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
 
 	firstChunk := true
 	params := &RequestOptions{
 		message:     req.Prompt,
 		lastContext: req.Options,
 		process: func(chat revchatgpt.ChatMessage) {
-			if firstChunk {
-				c.JSON(http.StatusOK, &chat)
-			} else if data, err := json.Marshal(chat); err == nil {
-				// `\n` as seperator in the frontend
-				c.String(http.StatusOK, fmt.Sprintf("\n%s", data))
-			} // ignore others
-			firstChunk = false
+			if data, err := json.Marshal(chat); err == nil {
+				if firstChunk {
+					c.Writer.Write(data)
+					c.Data(http.StatusOK, "application/octet-stream; charset=utf-8", data)
+				} else {
+					// `\n` as seperator in the frontend
+					data = append([]byte("\n"), data...)
+					c.Writer.Write(data)
+				}
+				// Important! The following line can make the frontend steam the reply
+				c.Writer.Flush()
+				firstChunk = false
+			} else {
+				fmt.Printf("marshal json %v, err: %s\n", chat, err.Error())
+			}
 		},
 		systemMessage: req.SystemMessage,
 	}
