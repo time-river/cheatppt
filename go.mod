@@ -12,6 +12,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/crypto v0.8.0
+	gopkg.in/cenkalti/backoff.v1 v1.1.0
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.6
 )
@@ -43,8 +44,7 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
-	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/r3labs/sse/v2 => github.com/time-river/sse/v2 v2.10.1
+replace github.com/r3labs/sse/v2 => github.com/time-river/sse/v2 v2.10.2
