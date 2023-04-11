@@ -42,8 +42,14 @@ type ChatgptWebCfg struct {
 	AuthSecretKey   string `toml:"auth-secret-key"`
 }
 
+type LogCfg struct {
+	Level  string `toml:"level"`  // panic, fatal, error, warn, warning, info, debug, trace
+	Output string `toml:"output"` // stdout, stderr, [filename]
+	Format string `toml:"format"` // json, text
+}
+
 type Cfg struct {
-	Debug      bool          `toml:"debug"`
+	Log        LogCfg        `toml:"debug"`
 	Server     ServerCfg     `toml:"http"`
 	ReCAPTCHA  ReCAPTCHACfg  `toml:"reCAPTCHA"`
 	DB         DBCfg         `toml:"database"`
@@ -53,7 +59,10 @@ type Cfg struct {
 }
 
 var GlobalCfg = Cfg{
-	Debug: true,
+	Log: LogCfg{
+		Level:  "info",
+		Output: "stderr",
+	},
 	Server: ServerCfg{
 		Addr:   "127.0.0.1",
 		Port:   8080,
@@ -93,3 +102,4 @@ var GlobalCfg = Cfg{
 }
 
 var GlobalKey [32]byte
+var LogOpts = &GlobalCfg.Log

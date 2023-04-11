@@ -31,7 +31,6 @@ func fetchSSE(opts *sseOptions) error {
 	})
 
 	// FIXME: need notify when error ?
-
 	err := client.SubscribeRaw(opts.subscriber)
 	return err
 }

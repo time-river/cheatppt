@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"cheatppt/log"
 )
 
 type ReCAPTCHA struct {
@@ -38,18 +38,18 @@ func (rc *ReCAPTCHA) check(remoteip, response *string) (r recaptchaResponse, err
 	resp, err := http.PostForm(rc.server,
 		url.Values{"secret": {rc.secret}, "remoteip": {*remoteip}, "response": {*response}})
 	if err != nil {
-		logrus.Errorf("Post error: %s\n", err)
+		log.Error("Post error: %s\n", err)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		logrus.Errorf("Read error: could not read body: %s", err)
+		log.Error("Read error: could not read body: %s", err)
 		return
 	}
 	err = json.Unmarshal(body, &r)
 	if err != nil {
-		logrus.Errorf("Read error: got invalid JSON: %s", err)
+		log.Error("Read error: got invalid JSON: %s", err)
 		return
 	}
 	return

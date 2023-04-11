@@ -1,18 +1,20 @@
 package apiv0
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"cheatppt/config"
-	"cheatppt/deps/revchatgpt"
+	"cheatppt/contrib/revchatgpt2"
 )
 
 func ChatgptWebAuth(c *gin.Context) {
@@ -142,61 +144,31 @@ func ChatgptWebSession(c *gin.Context) {
 	c.JSON(http.StatusOK, msg)
 }
 
-var api *revchatgpt.ChatGPTUnofficialProxyAPI
+var clientConfig *revchatgpt2.ClientConfig
+var revchatgptClient *revchatgpt2.Client
 var onceConf sync.Once
+
+func initConfig() {
+	conf := config.GlobalCfg.ChatgptWeb
+
+	if revchatgptClient == nil {
+		onceConf.Do(func() {
+			config := revchatgpt2.DefaultConfig(
+				conf.OpenaiApiToken,
+				conf.ReverseProxyUrl,
+				conf.ApiModel,
+			)
+			clientConfig = &config
+			revchatgptClient = revchatgpt2.NewClientWithConfig(config)
+		})
+	}
+}
 
 /**
  * OpenAI disable the concurrent requests, otherwise
  * reports error: Only one message at a time.
  */
 var mu sync.Mutex
-
-func chatReplyProcess(params *RequestOptions) *CommonResponse {
-	conf := config.GlobalCfg.ChatgptWeb
-
-	if api == nil {
-		onceConf.Do(func() {
-			api = revchatgpt.NewChatGPTUnofficialProxyAPI(
-				conf.OpenaiApiToken,
-				conf.ReverseProxyUrl,
-				conf.ApiModel,
-			)
-			api.EnableDebug(os.Stdout)
-		})
-	}
-
-	/* only support unofficial chatgpt api currently */
-	// TODO
-	opts := revchatgpt.SendMessageBrowserOptions{
-		ConversationId:  params.lastContext.ConversationId,
-		ParentMessageId: params.lastContext.ParentMessageId,
-		OnProgress:      params.process,
-		TimeoutMs:       conf.TimeoutMs,
-	}
-
-	{
-		mu.Lock()
-		defer mu.Unlock()
-
-		if _, err := api.SendMessage(params.message, opts); err != nil {
-			var msg = &CommonResponse{
-				Status: "Fail",
-			}
-
-			code := err.StatusCode
-			if value, ok := ErrorCodeMessage[code]; ok {
-				msg.Message = value
-			} else if len(err.StatusText) > 0 {
-				msg.Message = err.StatusText
-			} else {
-				msg.Message = "Please check the back-end console"
-			}
-			return msg
-		}
-	}
-
-	return nil
-}
 
 func ChatgptWebChatProcess(c *gin.Context) {
 	var req RequestProps
@@ -206,38 +178,83 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		return
 	}
 
+	initConfig()
+
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
+	c.Header("Content-Type", "application/octet-stream; charset=utf-8")
+
+	/* only support unofficial chatgpt api currently */
+	// TODO
+	opts := revchatgpt2.SendMessageBrowserOptions{
+		ConversationId:  req.Options.ConversationId,
+		ParentMessageId: req.Options.ParentMessageId,
+		Model:           clientConfig.Model,
+	}
+	text := req.Prompt
+
+	messages := make(chan []byte)
+	var msg *CommonResponse
+
+	go func() {
+		parent := context.Background()
+		ctx, cancel := context.WithTimeout(parent, 60*time.Second)
+		defer cancel()
+
+		stream, err := revchatgptClient.CreateChatCompletionStream(ctx, text, opts)
+		if err != nil && err.Error() == context.DeadlineExceeded.Error() {
+			msg = &CommonResponse{
+				Status:  "Fail",
+				Message: "ChatGPT Server Request Timeout",
+			}
+		} else if err != nil {
+			msg = &CommonResponse{
+				Status:  "Fail",
+				Message: err.Error(),
+			}
+		} else {
+			defer stream.Close()
+
+			for {
+				data, err := stream.Recv()
+				if err != nil && err == io.EOF {
+					// don't send anything
+					break
+				} else if err != nil {
+					msg = &CommonResponse{
+						Status:  "Fail",
+						Message: err.Error(),
+					}
+					break
+				} else if chunk, err := data.Marshal(); err == nil {
+					messages <- chunk
+				}
+			}
+		}
+
+		close(messages)
+	}()
 
 	firstChunk := true
-	params := &RequestOptions{
-		message:     req.Prompt,
-		lastContext: req.Options,
-		process: func(chat revchatgpt.ChatMessage) {
-			if data, err := json.Marshal(chat); err == nil {
-				if firstChunk {
-					c.Writer.Write(data)
-					c.Data(http.StatusOK, "application/octet-stream; charset=utf-8", data)
-				} else {
-					// `\n` as seperator in the frontend
-					data = append([]byte("\n"), data...)
-					c.Writer.Write(data)
-				}
-				// Important! The following line can make the frontend steam the reply
-				c.Writer.Flush()
-				firstChunk = false
-			} else {
-				fmt.Printf("marshal json %v, err: %s\n", chat, err.Error())
-			}
-		},
-		systemMessage: req.SystemMessage,
-	}
 
-	// FIXME: what about error occurs after some part has beed parsed?
-	// Already know: if the null at the last of response body, empty the
-	// response message at the frontend
-	msg := chatReplyProcess(params)
+	c.Stream(func(w io.Writer) bool {
+		keep := false
+
+		if !firstChunk {
+			w.Write([]byte{'\n'})
+		}
+
+		if message, ok := <-messages; ok {
+			w.Write(message)
+			keep = true
+		}
+
+		firstChunk = false
+		return keep
+	})
+
 	if msg != nil {
+		// send error message
 		c.JSON(http.StatusOK, msg)
 	}
 }

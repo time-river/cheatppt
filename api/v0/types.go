@@ -1,7 +1,5 @@
 package apiv0
 
-import "cheatppt/deps/revchatgpt"
-
 /*
  * response format:
  * {
@@ -61,14 +59,6 @@ type RequestProps struct {
 	Prompt        string      `json:"prompt"`
 	Options       ChatContext `json:"options,omitempty"` /* algouth omit it, it's value still non-nil */
 	SystemMessage string      `json:"SystemMessage"`
-}
-
-/***********************************************/
-type RequestOptions struct {
-	message       string
-	lastContext   ChatContext
-	process       func(chat revchatgpt.ChatMessage)
-	systemMessage string
 }
 
 var ErrorCodeMessage = map[int]string{

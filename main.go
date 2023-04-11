@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"cheatppt/config"
+	"cheatppt/log"
 	"cheatppt/model/sql"
 	"cheatppt/router"
 )
@@ -15,14 +16,14 @@ import (
 func main() {
 	config.CmdlineParse()
 
+	log.Setup()
+
 	// TODO: env check
 	sql.DatabaseInit()
 
-	if !config.GlobalCfg.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
 	engine := gin.Default()
+
+	engine.Use(gin.LoggerWithWriter(log.GetWriter()))
 	engine.Use(gin.Logger())
 	router.Initialize(engine)
 
