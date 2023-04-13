@@ -7,12 +7,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
 	github.com/google/uuid v1.3.0
 	github.com/pelletier/go-toml/v2 v2.0.7
-	github.com/r3labs/sse/v2 v2.10.0
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/crypto v0.8.0
-	gopkg.in/cenkalti/backoff.v1 v1.1.0
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.6
 )
@@ -46,5 +44,3 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/r3labs/sse/v2 => github.com/time-river/sse/v2 v2.10.2
