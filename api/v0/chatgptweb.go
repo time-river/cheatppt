@@ -170,6 +170,20 @@ func initConfig() {
  */
 var mu sync.Mutex
 
+func parseErrorMsg(err error) string {
+	fmt.Printf("Error: %s\n", err.Error())
+
+	if e, ok := err.(*revchatgpt2.ChatGPTError); ok {
+		if value, ok := ErrorCodeMessage[e.StatusCode]; ok {
+			return value
+		} else {
+			return "ChatGPT unknow error"
+		}
+	} else {
+		return "Internal Error"
+	}
+}
+
 func ChatgptWebChatProcess(c *gin.Context) {
 	var req RequestProps
 
@@ -185,7 +199,6 @@ func ChatgptWebChatProcess(c *gin.Context) {
 	c.Header("Content-Type", "application/octet-stream; charset=utf-8")
 
 	/* only support unofficial chatgpt api currently */
-	// TODO
 	opts := revchatgpt2.SendMessageBrowserOptions{
 		ConversationId:  req.Options.ConversationId,
 		ParentMessageId: req.Options.ParentMessageId,
@@ -210,7 +223,7 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		} else if err != nil {
 			msg = &CommonResponse{
 				Status:  "Fail",
-				Message: err.Error(),
+				Message: parseErrorMsg(err),
 			}
 		} else {
 			defer stream.Close()
@@ -223,7 +236,7 @@ func ChatgptWebChatProcess(c *gin.Context) {
 				} else if err != nil {
 					msg = &CommonResponse{
 						Status:  "Fail",
-						Message: err.Error(),
+						Message: parseErrorMsg(err),
 					}
 					break
 				} else if chunk, err := data.Marshal(); err == nil {

@@ -41,6 +41,7 @@ func (stream *streamReader) Recv() (response ChatMessage, err error) {
 		} else if e != nil {
 			text := fmt.Sprintf("ChatGPT handle error: %s", e.Error())
 			err = &ChatGPTError{
+				StatusCode: 20,
 				StatusText: text,
 				Err:        e,
 			}
@@ -59,9 +60,9 @@ func (stream *streamReader) Recv() (response ChatMessage, err error) {
 
 		e = stream.responseBuilder.build(line, &msg)
 		if e != nil {
-			text := fmt.Sprintf("ChatGPT error: %s", err)
 			err = &ChatGPTError{
-				StatusText: text,
+				StatusCode: 21,
+				StatusText: e.Error(),
 				Err:        e,
 			}
 			return
@@ -75,9 +76,9 @@ func (stream *streamReader) Recv() (response ChatMessage, err error) {
 			// 	   "type": "invalid_request_error"
 			// 	 }
 			// }
-			text := fmt.Sprintf("ChatGPT error: %s", msg.Error)
 			err = &ChatGPTError{
-				StatusText: text,
+				StatusCode: 22,
+				StatusText: msg.Error.String(),
 			}
 
 			return

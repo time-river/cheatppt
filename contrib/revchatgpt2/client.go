@@ -52,6 +52,7 @@ func (c *Client) CreateChatCompletionStream(
 	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		err = &ChatGPTError{
+			StatusCode: 10,
 			StatusText: err.Error(),
 			Err:        err,
 		}
@@ -114,24 +115,28 @@ func (c *Client) newStreamRequest(
 func checkOptions(opts *SendMessageBrowserOptions) error {
 	if (opts.ConversationId == nil && opts.ParentMessageId != nil) || (opts.ConversationId != nil && opts.ParentMessageId == nil) {
 		return &ChatGPTError{
+			StatusCode: 0,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: conversationId and parentMessageId must both be set or both be undefined",
 		}
 	}
 
 	if opts.ConversationId != nil && !isValidUUIDv4(*opts.ConversationId) {
 		return &ChatGPTError{
+			StatusCode: 1,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: conversationId is not a valid v4 UUID",
 		}
 	}
 
 	if opts.ParentMessageId != nil && !isValidUUIDv4(*opts.ParentMessageId) {
 		return &ChatGPTError{
+			StatusCode: 2,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: parentMessageId is not a valid v4 UUID",
 		}
 	}
 
 	if opts.MessageId != nil && !isValidUUIDv4(*opts.MessageId) {
 		return &ChatGPTError{
+			StatusCode: 3,
 			StatusText: "ChatGPTUnofficialProxyAPI.sendMessage: messageId is not a valid v4 UUID",
 		}
 	}
