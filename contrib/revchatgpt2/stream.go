@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"cheatppt/log"
 )
 
 type streamReader struct {
@@ -50,6 +52,8 @@ func (stream *streamReader) Recv() (response ChatMessage, err error) {
 			// empty line, e.g. `\n`
 			continue
 		}
+
+		log.Debugf("revchatgpt: `%s`\n", line)
 
 		line = bytes.TrimPrefix(line, []byte(prefix))
 		if bytes.Equal(line, []byte("[DONE]\n")) {

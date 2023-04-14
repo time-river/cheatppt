@@ -2,6 +2,7 @@ package revchatgpt2
 
 import (
 	"bufio"
+	"cheatppt/log"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -95,7 +96,7 @@ func (c *Client) newStreamRequest(
 	url string,
 	body any) (*http.Request, error) {
 
-	fmt.Printf("[%s] to %s\n  [BODY] %s\n", method, url, body)
+	log.Debugf("[%s] to %s [BODY] %s\n", method, url, body)
 
 	req, err := c.requestBuilder.build(ctx, method, url, body)
 	if err != nil {

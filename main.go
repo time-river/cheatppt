@@ -21,10 +21,10 @@ func main() {
 	// TODO: env check
 	sql.DatabaseInit()
 
-	engine := gin.Default()
-
+	engine := gin.New()
 	engine.Use(gin.LoggerWithWriter(log.GetWriter()))
-	engine.Use(gin.Logger())
+	engine.Use(gin.Recovery())
+
 	router.Initialize(engine)
 
 	addr := fmt.Sprintf("%s:%d", config.GlobalCfg.Server.Addr, config.GlobalCfg.Server.Port)

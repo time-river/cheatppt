@@ -15,6 +15,7 @@ import (
 
 	"cheatppt/config"
 	"cheatppt/contrib/revchatgpt2"
+	"cheatppt/log"
 )
 
 func ChatgptWebAuth(c *gin.Context) {
@@ -165,13 +166,13 @@ func initConfig() {
 }
 
 func parseErrorMsg(err error) string {
-	fmt.Printf("Error: %s\n", err.Error())
+	log.Info(err.Error())
 
 	if e, ok := err.(*revchatgpt2.ChatGPTError); ok {
 		if value, ok := ErrorCodeMessage[e.StatusCode]; ok {
 			return value
 		} else {
-			return "ChatGPT unknow error"
+			return "ChatGPT Error"
 		}
 	} else {
 		return "Internal Error"
