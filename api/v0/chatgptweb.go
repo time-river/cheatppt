@@ -164,12 +164,6 @@ func initConfig() {
 	}
 }
 
-/**
- * OpenAI disable the concurrent requests, otherwise
- * reports error: Only one message at a time.
- */
-var mu sync.Mutex
-
 func parseErrorMsg(err error) string {
 	fmt.Printf("Error: %s\n", err.Error())
 
@@ -248,21 +242,15 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		close(messages)
 	}()
 
-	firstChunk := true
-
 	c.Stream(func(w io.Writer) bool {
 		keep := false
 
-		if !firstChunk {
-			w.Write([]byte{'\n'})
-		}
-
 		if message, ok := <-messages; ok {
+			message = append(message, '\n')
 			w.Write(message)
 			keep = true
 		}
 
-		firstChunk = false
 		return keep
 	})
 
