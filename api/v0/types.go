@@ -69,3 +69,7 @@ var ErrorCodeMessage = map[int]string{
 	504: "[OpenAI] 网关超时 | Gateway Time-out",
 	500: "[OpenAI] 服务器繁忙，请稍后再试 | Internal Server Error",
 }
+
+type RefreshRequest struct {
+	Token string `json:"token"`
+}

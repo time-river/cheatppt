@@ -19,10 +19,11 @@ const (
 )
 
 const (
-	chatgptWebConfig      = "/config"
-	chatgptWebChatProcess = "/chat-process"
-	chatgptWebSession     = "/session"
-	chatgptWebVerify      = "/verify"
+	chatgptWebConfig         = "/config"
+	chatgptWebChatProcess    = "/chat-process"
+	chatgptWebSession        = "/session"
+	chatgptWebVerify         = "/verify"
+	chatgptWebRefreshSession = "/refresh-session"
 )
 
 func Initialize(router *gin.Engine) {
@@ -38,6 +39,7 @@ func Initialize(router *gin.Engine) {
 		chatgptweb.Use(apiv0.ChatgptWebAuth)
 		chatgptweb.POST(chatgptWebChatProcess, apiv0.ChatgptWebChatProcess)
 		chatgptweb.POST(chatgptWebConfig, apiv0.ChatgptWebConfig)
+		chatgptweb.PATCH(chatgptWebRefreshSession, apiv0.RefreshSession)
 	}
 
 	//apiv1 := router.Group("/api/v1")

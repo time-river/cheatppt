@@ -260,3 +260,21 @@ func ChatgptWebChatProcess(c *gin.Context) {
 		c.JSON(http.StatusOK, msg)
 	}
 }
+
+func RefreshSession(c *gin.Context) {
+	var req RefreshRequest
+	var msg = &CommonResponse{}
+
+	if err := c.BindJSON(&req); err != nil {
+		msg.Status = "Fail"
+		msg.Message = "Bad Request"
+		c.AbortWithStatusJSON(http.StatusBadRequest, msg)
+		return
+	}
+
+	conf := config.GlobalCfg.ChatgptWeb
+	conf.AuthSecretKey = req.Token
+
+	msg.Status = "Success"
+	c.JSON(http.StatusOK, msg)
+}
