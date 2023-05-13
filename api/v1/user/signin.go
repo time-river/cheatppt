@@ -7,7 +7,7 @@ import (
 	"github.com/kr/pretty"
 
 	"cheatppt/api"
-	"cheatppt/controller/chat"
+	"cheatppt/controller/chat/model"
 	"cheatppt/controller/code"
 	"cheatppt/controller/user"
 	"cheatppt/log"
@@ -25,7 +25,7 @@ type SignInRsp struct {
 	Email    string `json:"email"`
 	Token    string `json:"token"`
 
-	ModelSetting chat.ModelSetting `json:"modelSetting"`
+	ModelSetting model.Setting `json:"modelSetting"`
 }
 
 func SignIn(c *gin.Context) {

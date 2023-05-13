@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cheatppt/controller/chat"
+	"cheatppt/controller/chat/model"
 	"cheatppt/log"
 	"cheatppt/model/redis"
 	"cheatppt/model/sql"
@@ -17,7 +17,7 @@ import (
 type SignInData struct {
 	Email        string
 	Token        string
-	ModelSetting chat.ModelSetting
+	ModelSetting model.Setting
 }
 
 func SignIn(username, passwd string) (*SignInData, error) {
@@ -48,7 +48,7 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		return nil, errors.New("内部错误")
 	}
 
-	modelSetting := chat.GetModelSetting(user.Level)
+	modelSetting := model.GetSetting(user.Level)
 	data := &SignInData{
 		Email:        user.Email,
 		Token:        token,

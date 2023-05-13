@@ -31,6 +31,12 @@ type MailCfg struct {
 	Sender string `toml:"sender"`
 }
 
+type ChatGPTCfg struct {
+	ReverseProxyUrl string `toml:"url"`
+	TimeoutSec      uint   `toml:"timeout"` // unit: second
+	ChatGPTToken    string `toml:"token"`
+}
+
 type ChatgptWebCfg struct {
 	ApiModel        string `toml:"api-model"`
 	TimeoutMs       uint64 `toml:"timeout"`
@@ -55,6 +61,7 @@ type Cfg struct {
 	DB         DBCfg         `toml:"database"`
 	Redis      RedisCfg      `toml:"redis"`
 	Mail       MailCfg       `toml:"mail"`
+	ChatGPT    ChatGPTCfg    `toml:"chatgpt"`
 	ChatgptWeb ChatgptWebCfg `toml:"chatgpt-web"`
 }
 
@@ -90,6 +97,11 @@ var GlobalCfg = Cfg{
 		ApiKey: "",
 		Sender: "noreply@cheatppt.icu",
 	},
+	ChatGPT: ChatGPTCfg{
+		ReverseProxyUrl: "",
+		TimeoutSec:      60,
+		ChatGPTToken:    "",
+	},
 	ChatgptWeb: ChatgptWebCfg{
 		ApiModel:        "text-davinci-002-render-sha",
 		TimeoutMs:       0,
@@ -108,3 +120,4 @@ var LogOpts = &GlobalCfg.Log
 var Server = &GlobalCfg.Server
 var Code = &GlobalCfg.Code
 var Mail = &GlobalCfg.Mail
+var ChatGPT = &GlobalCfg.ChatGPT

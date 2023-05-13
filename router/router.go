@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
-	apiv0 "cheatppt/api/v0"
+	chatgptapiv1 "cheatppt/api/v1/chatgpt"
 	userapiv1 "cheatppt/api/v1/user"
 	"cheatppt/middleware/auth"
 )
@@ -18,28 +18,12 @@ const (
 )
 
 const (
-	chatgptWebConfig         = "/config"
-	chatgptWebChatProcess    = "/chat-process"
-	chatgptWebSession        = "/session"
-	chatgptWebVerify         = "/verify"
-	chatgptWebRefreshSession = "/refresh-session"
+	chatGPTApiPrefix    = "/api/v1/chatgpt"
+	chatGPTChat         = "/chat"
+	chatGPTRefreshToken = "/refresh"
 )
 
 func Initialize(router *gin.Engine) {
-	//router.LoadHTMLGlob("templates/*")
-
-	/* v2 just for no-authorization request */
-	rv0 := router.Group("/api/v0")
-	{
-		chatgptweb := rv0.Group("/api")
-		chatgptweb.POST(chatgptWebVerify, apiv0.ChatgptWebVerify)
-		chatgptweb.POST(chatgptWebSession, apiv0.ChatgptWebSession)
-
-		chatgptweb.Use(apiv0.ChatgptWebAuth)
-		chatgptweb.POST(chatgptWebChatProcess, apiv0.ChatgptWebChatProcess)
-		chatgptweb.POST(chatgptWebConfig, apiv0.ChatgptWebConfig)
-		chatgptweb.PATCH(chatgptWebRefreshSession, apiv0.RefreshSession)
-	}
 
 	user := router.Group(userApiPrefix)
 	{
@@ -48,5 +32,12 @@ func Initialize(router *gin.Engine) {
 		user.POST(userSignIn, userapiv1.SignIn)
 		user.POST(userSignOut, auth.TokenVerify, userapiv1.SignOut)
 		user.POST(userReset, userapiv1.Reset)
+	}
+
+	chatGPT := router.Group(chatGPTApiPrefix)
+	{
+		chatGPT.Use(auth.TokenVerify)
+		chatGPT.POST(chatGPTChat, chatgptapiv1.Chat)
+		chatGPT.PATCH(chatGPTRefreshToken, chatgptapiv1.RefreshToken)
 	}
 }

@@ -11,7 +11,6 @@ type SendMessageBrowserOptions struct {
 	ParentMessageId *string
 	MessageId       *string
 	Action          *string /* 'next' | 'variant' */
-	TimeoutMs       uint64
 	Model           string
 }
 
