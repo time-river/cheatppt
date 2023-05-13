@@ -8,13 +8,13 @@ type Model struct {
 }
 
 // @Default: `models[]` index instead of `Model.Id`
-type ModelSetting struct {
+type Setting struct {
 	Default int     `json:"default"`
 	Models  []Model `json:"models"`
 }
 
-func GetModelSetting(level int) ModelSetting {
-	return ModelSetting{
+func GetSetting(level int) Setting {
+	return Setting{
 		Default: 0,
 		Models: []Model{
 			{Id: 0, ModelName: "gpt-3.5-turbo", DisplayName: "gpt-3.5-turbo", IsChatGPT: false},

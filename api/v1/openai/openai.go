@@ -58,10 +58,9 @@ func Chat(c *gin.Context) {
 
 	c.Stream(func(w io.Writer) bool {
 		data, err := session.Recv()
-		if err != nil && err == io.EOF {
+		if err != nil {
+			// any error will result of sending `[DONE]`
 			c.SSEvent("", "[DONE]")
-			return false
-		} else if err != nil {
 			return false
 		}
 

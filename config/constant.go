@@ -37,6 +37,12 @@ type OpenAICfg struct {
 	Token   string `toml:"token"`
 }
 
+type ChatGPTCfg struct {
+	ReverseProxyUrl string `toml:"url"`
+	TimeoutSec      uint   `toml:"timeout"` // unit: second
+	ChatGPTToken    string `toml:"token"`
+}
+
 type LogCfg struct {
 	Level  string `toml:"level"`  // panic, fatal, error, warn, warning, info, debug, trace
 	Output string `toml:"output"` // stdout, stderr, [filename]
@@ -44,13 +50,14 @@ type LogCfg struct {
 }
 
 type Cfg struct {
-	Log    LogCfg       `toml:"debug"`
-	Server ServerCfg    `toml:"http"`
-	Code   ReCAPTCHACfg `toml:"code"`
-	DB     DBCfg        `toml:"database"`
-	Redis  RedisCfg     `toml:"redis"`
-	Mail   MailCfg      `toml:"mail"`
-	OpenAI OpenAICfg    `toml:"openai"`
+	Log     LogCfg       `toml:"debug"`
+	Server  ServerCfg    `toml:"http"`
+	Code    ReCAPTCHACfg `toml:"code"`
+	DB      DBCfg        `toml:"database"`
+	Redis   RedisCfg     `toml:"redis"`
+	Mail    MailCfg      `toml:"mail"`
+	OpenAI  OpenAICfg    `toml:"openai"`
+	ChatGPT ChatGPTCfg   `toml:"chatgpt"`
 }
 
 var GlobalCfg = Cfg{
@@ -90,6 +97,11 @@ var GlobalCfg = Cfg{
 		OrdID:   "",
 		Token:   "",
 	},
+	ChatGPT: ChatGPTCfg{
+		ReverseProxyUrl: "",
+		TimeoutSec:      60,
+		ChatGPTToken:    "",
+	},
 }
 
 var GlobalKey [32]byte
@@ -99,3 +111,4 @@ var Server = &GlobalCfg.Server
 var Code = &GlobalCfg.Code
 var Mail = &GlobalCfg.Mail
 var OpenAI = &GlobalCfg.OpenAI
+var ChatGPT = &GlobalCfg.ChatGPT

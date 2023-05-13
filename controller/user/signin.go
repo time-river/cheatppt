@@ -15,9 +15,10 @@ import (
 )
 
 type SignInData struct {
-	Email        string
-	Token        string
-	ModelSetting model.ModelSetting
+	Email string
+	Token string
+
+	ModelSetting model.Setting
 }
 
 func SignIn(username, passwd string) (*SignInData, error) {
@@ -48,7 +49,7 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		return nil, errors.New("内部错误")
 	}
 
-	modelSetting := model.GetModelSetting(user.Level)
+	modelSetting := model.GetSetting(user.Level)
 	data := &SignInData{
 		Email:        user.Email,
 		Token:        token,

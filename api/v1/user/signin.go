@@ -25,7 +25,7 @@ type SignInRsp struct {
 	Email    string `json:"email"`
 	Token    string `json:"token"`
 
-	ModelSetting model.ModelSetting `json:"modelSetting"`
+	ModelSetting model.Setting `json:"modelSetting"`
 }
 
 func SignIn(c *gin.Context) {

@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
+	chatgptapiv1 "cheatppt/api/v1/chatgpt"
 	openaiapiv1 "cheatppt/api/v1/openai"
 	userapiv1 "cheatppt/api/v1/user"
 )
@@ -21,6 +22,12 @@ const (
 	openaiChat      = "/chat/completions"
 )
 
+const (
+	chatGPTApiPrefix    = "/api/v1/chatgpt"
+	chatGPTChat         = "/chat"
+	chatGPTRefreshToken = "/refresh"
+)
+
 func Initialize(router *gin.Engine) {
 
 	user := router.Group(userApiPrefix)
@@ -35,5 +42,11 @@ func Initialize(router *gin.Engine) {
 	openai := router.Group(openaiApiPrefix)
 	{
 		openai.POST(openaiChat, openaiapiv1.Chat)
+	}
+
+	chatGPT := router.Group(chatGPTApiPrefix)
+	{
+		chatGPT.POST(chatGPTChat, chatgptapiv1.Chat)
+		chatGPT.PATCH(chatGPTRefreshToken, chatgptapiv1.RefreshToken)
 	}
 }
