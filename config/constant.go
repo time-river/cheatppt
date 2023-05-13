@@ -1,9 +1,10 @@
 package config
 
 type ServerCfg struct {
-	Addr   string `toml:"address"`
-	Port   int    `toml:"port"`
-	Secret string `toml:"secret"`
+	Addr           string `toml:"address"`
+	Port           int    `toml:"port"`
+	Secret         string `toml:"secret"`
+	EnableRegister bool   `toml:"enable-register"`
 }
 
 type ReCAPTCHACfg struct {
@@ -63,9 +64,10 @@ var GlobalCfg = Cfg{
 		Output: "stderr",
 	},
 	Server: ServerCfg{
-		Addr:   "127.0.0.1",
-		Port:   8080,
-		Secret: "",
+		Addr:           "127.0.0.1",
+		Port:           8080,
+		Secret:         "",
+		EnableRegister: true,
 	},
 	Code: ReCAPTCHACfg{
 		// https://developers.google.com/recaptcha/docs/faq?hl=zh-cn

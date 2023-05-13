@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"cheatppt/api"
+	"cheatppt/config"
 	"cheatppt/controller/user"
 	"cheatppt/log"
 	"cheatppt/utils"
@@ -22,6 +23,12 @@ type SignUpReq struct {
 func SignUp(c *gin.Context) {
 	var req SignUpReq
 	var rsp = &api.Response{Status: api.FAILURE}
+
+	if !config.Server.EnableRegister {
+		rsp.Message = "管理员禁止注册"
+		c.JSON(http.StatusOK, rsp)
+		return
+	}
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp.Message = "非法请求"
