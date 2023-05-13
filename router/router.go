@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	chatgptapiv1 "cheatppt/api/v1/chatgpt"
+	openaiapiv1 "cheatppt/api/v1/openai"
 	userapiv1 "cheatppt/api/v1/user"
 	"cheatppt/middleware/auth"
 )
@@ -15,6 +16,11 @@ const (
 	userSignUp    = "/signup"
 	userSignIn    = "/signin"
 	userSignOut   = "/signout"
+)
+
+const (
+	openaiApiPrefix = "/api/openai/v1"
+	openaiChat      = "/chat/completions"
 )
 
 const (
@@ -32,6 +38,11 @@ func Initialize(router *gin.Engine) {
 		user.POST(userSignIn, userapiv1.SignIn)
 		user.POST(userSignOut, auth.TokenVerify, userapiv1.SignOut)
 		user.POST(userReset, userapiv1.Reset)
+	}
+
+	openai := router.Group(openaiApiPrefix)
+	{
+		openai.POST(openaiChat, openaiapiv1.Chat)
 	}
 
 	chatGPT := router.Group(chatGPTApiPrefix)

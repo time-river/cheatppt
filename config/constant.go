@@ -37,6 +37,12 @@ type ChatGPTCfg struct {
 	ChatGPTToken    string `toml:"token"`
 }
 
+type OpenAICfg struct {
+	BaseURL string `toml:"base-url"`
+	OrdID   string `toml:"org-id"`
+	Token   string `toml:"token"`
+}
+
 type ChatgptWebCfg struct {
 	ApiModel        string `toml:"api-model"`
 	TimeoutMs       uint64 `toml:"timeout"`
@@ -62,6 +68,7 @@ type Cfg struct {
 	Redis      RedisCfg      `toml:"redis"`
 	Mail       MailCfg       `toml:"mail"`
 	ChatGPT    ChatGPTCfg    `toml:"chatgpt"`
+	OpenAI     OpenAICfg     `toml:"openai"`
 	ChatgptWeb ChatgptWebCfg `toml:"chatgpt-web"`
 }
 
@@ -102,6 +109,11 @@ var GlobalCfg = Cfg{
 		TimeoutSec:      60,
 		ChatGPTToken:    "",
 	},
+	OpenAI: OpenAICfg{
+		BaseURL: "",
+		OrdID:   "",
+		Token:   "",
+	},
 	ChatgptWeb: ChatgptWebCfg{
 		ApiModel:        "text-davinci-002-render-sha",
 		TimeoutMs:       0,
@@ -121,3 +133,4 @@ var Server = &GlobalCfg.Server
 var Code = &GlobalCfg.Code
 var Mail = &GlobalCfg.Mail
 var ChatGPT = &GlobalCfg.ChatGPT
+var OpenAI = &GlobalCfg.OpenAI
