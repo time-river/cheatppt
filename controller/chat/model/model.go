@@ -1,4 +1,4 @@
-package chat
+package model
 
 type Model struct {
 	Id          int    `json:"id"`
@@ -23,4 +23,9 @@ func GetModelSetting(level int) ModelSetting {
 			{Id: 10001, ModelName: "gpt-4", DisplayName: "ChatGPT-4 (unstable)", IsChatGPT: true},
 		},
 	}
+}
+
+// acl
+func Allow(model string) bool {
+	return true
 }

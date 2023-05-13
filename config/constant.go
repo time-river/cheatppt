@@ -31,6 +31,12 @@ type MailCfg struct {
 	Sender string `toml:"sender"`
 }
 
+type OpenAICfg struct {
+	BaseURL string `toml:"base-url"`
+	OrdID   string `toml:"org-id"`
+	Token   string `toml:"token"`
+}
+
 type LogCfg struct {
 	Level  string `toml:"level"`  // panic, fatal, error, warn, warning, info, debug, trace
 	Output string `toml:"output"` // stdout, stderr, [filename]
@@ -44,6 +50,7 @@ type Cfg struct {
 	DB     DBCfg        `toml:"database"`
 	Redis  RedisCfg     `toml:"redis"`
 	Mail   MailCfg      `toml:"mail"`
+	OpenAI OpenAICfg    `toml:"openai"`
 }
 
 var GlobalCfg = Cfg{
@@ -78,6 +85,11 @@ var GlobalCfg = Cfg{
 		ApiKey: "",
 		Sender: "noreply@cheatppt.icu",
 	},
+	OpenAI: OpenAICfg{
+		BaseURL: "",
+		OrdID:   "",
+		Token:   "",
+	},
 }
 
 var GlobalKey [32]byte
@@ -86,3 +98,4 @@ var LogOpts = &GlobalCfg.Log
 var Server = &GlobalCfg.Server
 var Code = &GlobalCfg.Code
 var Mail = &GlobalCfg.Mail
+var OpenAI = &GlobalCfg.OpenAI
