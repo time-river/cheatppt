@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/kr/pretty"
 	"github.com/sashabaranov/go-openai"
 
 	"cheatppt/config"
@@ -86,6 +87,19 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 	return &session, nil
 }
 
-func (c *ChatSession) Recv() (openai.ChatCompletionStreamResponse, error) {
-	return c.stream.Recv()
+func (c *ChatSession) Recv() (string, error) {
+	data, err := c.stream.Recv()
+	if err != nil {
+		log.Warnf("Recv Msg ERROR: %s\n", err.Error())
+
+		return "", err
+	}
+
+	log.Trace(pretty.Sprint(data))
+
+	return data.Choices[0].Delta.Content, nil
+}
+
+func (c *ChatSession) Close() {
+	c.stream.Close()
 }

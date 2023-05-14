@@ -51,25 +51,24 @@ func Chat(c *gin.Context) {
 		c.JSON(err.Error.HTTPStatusCode, err)
 		return
 	}
+	defer session.Close()
 
 	// for http streaming
 	c.Header("Cache-Control", "no-cache")
-	// once set `text/event-stream`, the display isn't stream,
-	// therefore comment it
+	// the response is `plain/text` because of the frontend
+	// once set `text/event-stream`, the display is server-sent event,
+	// therefore comment it.
 	//c.Header("Content-Type", "text/event-stream")
 
 	c.Stream(func(w io.Writer) bool {
-		data, err := session.Recv()
+		text, err := session.Recv()
 		if err != nil && err == io.EOF {
 			return false
 		} else if err != nil {
-			log.Warnf("Recv Msg ERROR: %s\n", err.Error())
 			return false
 		}
 
-		log.Trace(pretty.Sprint(data))
-
-		w.Write([]byte(data.Choices[0].Delta.Content))
+		w.Write([]byte(text))
 		return true
 	})
 }
