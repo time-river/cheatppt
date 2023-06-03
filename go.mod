@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/kr/pretty v0.3.1
 	github.com/pelletier/go-toml/v2 v2.0.7
+	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
 	github.com/redis/go-redis/v9 v9.0.4
 	github.com/sashabaranov/go-openai v1.9.4
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
@@ -24,6 +25,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
