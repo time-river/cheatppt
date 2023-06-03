@@ -26,6 +26,7 @@ func initTikToken(model string) (*tiktok, error) {
 
 	tkm, err := tiktoken.EncodingForModel(model)
 	if err != nil {
+		log.Warnf("tiktok EncodingForModel ERROR: %s\n", err.Error())
 		return nil, err
 	}
 
@@ -38,7 +39,6 @@ func initTikToken(model string) (*tiktok, error) {
 		tiktok.tokensPerMessage = 3
 		tiktok.tokensPerName = 1
 	} else {
-		log.Warn("Warning: model not found. Using cl100k_base encoding.")
 		tiktok.tokensPerMessage = 3
 		tiktok.tokensPerName = 1
 	}
@@ -68,6 +68,22 @@ func CountPromptToken(model string, prompts []openai.ChatCompletionMessage) (int
 			}
 		}
 	}
+
+	return promptTokens, nil
+}
+
+func CountStringToken(prompt string) (int, error) {
+	promptTokens := 0
+
+	// use `gpt-3.5-turbo` model
+	tiktok, err := initTikToken("gpt-3.5-turbo")
+	if err != nil {
+		return 0, err
+	}
+
+	promptTokens += tiktok.tokensPerMessage
+	promptTokens += len(tiktok.tkm.Encode(prompt, nil, nil))
+	promptTokens += tiktok.tokensPerName
 
 	return promptTokens, nil
 }

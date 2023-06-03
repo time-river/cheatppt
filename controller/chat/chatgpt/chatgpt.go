@@ -32,6 +32,7 @@ type ChatOpts struct {
 
 type ChatSession struct {
 	stream []*revchatgpt2.ChatCompletionStream
+	usage  token.Usage
 
 	messageIdx int
 
@@ -54,6 +55,10 @@ func NewChat(opts *ChatOpts) (*ChatSession, error) {
 	var session = ChatSession{
 		ctx:    opts.Ctx,
 		stream: make([]*revchatgpt2.ChatCompletionStream, 0),
+		usage: token.Usage{
+			PromptTokens:     0,
+			CompletionTokens: 0,
+		},
 	}
 	var err error
 
@@ -73,6 +78,11 @@ func NewChat(opts *ChatOpts) (*ChatSession, error) {
 	}
 
 	prompt := opts.Prompt
+	session.usage.PromptTokens, err = token.CountStringToken(prompt)
+	if err != nil {
+		return nil, fmt.Errorf("内部出错了，换用其他模型试试吧")
+	}
+
 	stream, err := session.client.CreateChatCompletionStream(*opts.Ctx, prompt, revChatGPTOpts)
 	if err != nil {
 		return nil, fmt.Errorf("ChatGPT出错了，换用其他模型吧")
@@ -116,7 +126,7 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 		}
 
 		// first response
-		if len(c.conversationId) == 0 {
+		if c.messageIdx == 0 {
 			c.model = data.Model
 			c.conversationId = data.ConversationId
 			c.messageId = data.MessageId
@@ -131,8 +141,10 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 				ConversationId:  &data.ConversationId,
 				ParentMessageId: &data.ParentMessageId,
 			},
+			Usage: c.usage,
 		}
 		c.messageIdx = len(message)
+		c.usage.CompletionTokens += 1
 
 		if data.Status == revchatgpt2.ChatMaxTokens {
 			c.continueChat(message)
