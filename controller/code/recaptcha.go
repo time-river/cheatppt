@@ -91,7 +91,7 @@ func Confirm(remotIp, response string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("内部错误")
 	} else {
-		log.Debug(pretty.Sprint(rsp))
+		log.Trace(pretty.Sprint(rsp))
 		return rsp.Success, nil
 	}
 }

@@ -13,7 +13,7 @@ func ResetPassword(username, passwd string) error {
 
 	blob := utils.Digest(passwd)
 	if err := db.Model(&sql.User{}).Where("username = ?", username).Update("password", blob).Error; err != nil {
-		log.Debugf("ResetPassword ERROR: %s\n", err.Error())
+		log.Tracef("ResetPassword ERROR: %s\n", err.Error())
 		return fmt.Errorf("内部错误")
 	}
 

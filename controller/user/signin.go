@@ -32,7 +32,7 @@ func SignIn(username, passwd string) (*SignInData, error) {
 
 	digest := utils.Digest(passwd)
 	if !bytes.Equal(user.Password, digest) {
-		log.Debug("wrong password")
+		log.Trace("wrong password")
 		return nil, fmt.Errorf("用户名或密码错误")
 	}
 
@@ -55,7 +55,7 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		ModelSetting: modelSetting,
 	}
 
-	log.Debug(pretty.Sprint(data))
+	log.Trace(pretty.Sprint(data))
 
 	return data, nil
 }
