@@ -3,8 +3,9 @@ package api
 type status string
 
 const (
-	FAILURE = "failure"
-	SUCCESS = "success"
+	FAILURE      = "failure"
+	SUCCESS      = "success"
+	UNAUTHORIZED = "unauthorized"
 )
 
 type Response struct {

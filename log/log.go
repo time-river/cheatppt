@@ -12,7 +12,7 @@ import (
 
 var logger *logrus.Logger
 
-func Setup() {
+func Setup() bool {
 	opts := config.LogOpts
 
 	logger = logrus.New()
@@ -37,6 +37,7 @@ func Setup() {
 		logger.SetFormatter(new(logrus.JSONFormatter))
 	}
 
+	return lvl > logrus.InfoLevel
 }
 
 func GetWriter() io.Writer {

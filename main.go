@@ -16,12 +16,15 @@ import (
 func main() {
 	config.CmdlineParse()
 
-	log.Setup()
+	debug := log.Setup()
 
 	// TODO: env check
 	sql.DatabaseInit()
 
 	engine := gin.New()
+	if !debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	engine.Use(gin.LoggerWithWriter(log.GetWriter()))
 	engine.Use(gin.Recovery())
 
