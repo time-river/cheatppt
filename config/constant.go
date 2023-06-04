@@ -27,8 +27,10 @@ type RedisCfg struct {
 }
 
 type MailCfg struct {
-	ApiKey string `toml:"apikey"`
-	Sender string `toml:"sender"`
+	SenderAddr string `toml:"sender-address"`
+	SenderName string `toml:"sender-name"`
+	SMTPServer string `toml:"smtp"`
+	Secret     string `toml:"secret"`
 }
 
 type OpenAICfg struct {
@@ -88,10 +90,7 @@ var GlobalCfg = Cfg{
 		Db:     0,
 		Lease:  3600 * 24 * 3, /* 3 days */
 	},
-	Mail: MailCfg{
-		ApiKey: "",
-		Sender: "noreply@cheatppt.icu",
-	},
+	Mail: MailCfg{},
 	OpenAI: OpenAICfg{
 		BaseURL: "",
 		OrdID:   "",

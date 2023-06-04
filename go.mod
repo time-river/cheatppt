@@ -12,7 +12,6 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.1-0.20230418101013-cae809389480
 	github.com/redis/go-redis/v9 v9.0.4
 	github.com/sashabaranov/go-openai v1.9.4
-	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/crypto v0.9.0
 	golang.org/x/text v0.9.0
@@ -43,7 +42,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.2.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
-	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
