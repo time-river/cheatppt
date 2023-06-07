@@ -7,8 +7,7 @@ type ServerCfg struct {
 	EnableRegister bool   `toml:"enable-register"`
 }
 
-type ReCAPTCHACfg struct {
-	Host   string `toml:"server"`
+type CAPTCHACfg struct {
 	Secret string `toml:"secret"`
 }
 
@@ -52,14 +51,14 @@ type LogCfg struct {
 }
 
 type Cfg struct {
-	Log     LogCfg       `toml:"debug"`
-	Server  ServerCfg    `toml:"http"`
-	Code    ReCAPTCHACfg `toml:"code"`
-	DB      DBCfg        `toml:"database"`
-	Redis   RedisCfg     `toml:"redis"`
-	Mail    MailCfg      `toml:"mail"`
-	OpenAI  OpenAICfg    `toml:"openai"`
-	ChatGPT ChatGPTCfg   `toml:"chatgpt"`
+	Log     LogCfg     `toml:"debug"`
+	Server  ServerCfg  `toml:"http"`
+	Code    CAPTCHACfg `toml:"code"`
+	DB      DBCfg      `toml:"database"`
+	Redis   RedisCfg   `toml:"redis"`
+	Mail    MailCfg    `toml:"mail"`
+	OpenAI  OpenAICfg  `toml:"openai"`
+	ChatGPT ChatGPTCfg `toml:"chatgpt"`
 }
 
 var GlobalCfg = Cfg{
@@ -73,10 +72,8 @@ var GlobalCfg = Cfg{
 		Secret:         "",
 		EnableRegister: true,
 	},
-	Code: ReCAPTCHACfg{
-		// https://developers.google.com/recaptcha/docs/faq?hl=zh-cn
-		Host:   "www.recaptcha.net",
-		Secret: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+	Code: CAPTCHACfg{
+		Secret: "1x0000000000000000000000000000000AA",
 	},
 	DB: DBCfg{
 		Driver: "sqlite3",

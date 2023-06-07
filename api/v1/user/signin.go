@@ -40,7 +40,9 @@ func SignIn(c *gin.Context) {
 
 	log.Debug(pretty.Sprint(req))
 
-	isHuman, err := code.Confirm(c.ClientIP(), req.Code)
+	token := req.Code
+	ip := c.Request.Header.Get("CF-Connecting-IP")
+	isHuman, err := code.Confirm(ip, token)
 	if err != nil {
 		rsp.Message = "内部错误"
 		c.AbortWithStatusJSON(http.StatusOK, rsp)
