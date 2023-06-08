@@ -16,7 +16,7 @@ import (
 )
 
 // triplet: (username, email, code)
-const ValidMin = 30 // validity period, minutes
+const codeValidMin = 30 // validity period, minutes
 
 func generateCode() string {
 	rand.Seed(time.Now().UnixNano())
@@ -42,7 +42,7 @@ func GenerateResetCode(username string) error {
 
 		return fmt.Errorf("内部错误")
 	} else if !user.Activated {
-		// user is creating, but not reports error
+		// user is creating (not activate), but not reports error
 		return nil
 	}
 
@@ -50,10 +50,12 @@ func GenerateResetCode(username string) error {
 		Username: username,
 		Email:    user.Email,
 		Code:     generateCode(),
-		ValidMin: ValidMin,
+		ValidMin: codeValidMin,
 	}
 
-	if err := sendCode(&mailCtx, mailCtx.Code); err != nil {
+	key := fmt.Sprintf("%s-reset", mailCtx.Username)
+	val := mailCtx.Code
+	if err := sendCode(&mailCtx, key, val); err != nil {
 		return fmt.Errorf("内部错误")
 	}
 
@@ -78,6 +80,7 @@ func prepareUser(username, email string) error {
 	}
 	// TODO: other errors?
 
+	// the lock ensures two SQL are atomic
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -111,22 +114,23 @@ func GenerateSignUpCode(username, email string) error {
 		Username: username,
 		Email:    email,
 		Code:     generateCode(),
-		ValidMin: ValidMin,
+		ValidMin: codeValidMin,
 	}
 
 	/* only one valid code exists for one user */
+	key := fmt.Sprintf("%s-signup", mailCtx.Username)
 	value := fmt.Sprintf("%s %s", mailCtx.Code, mailCtx.Email)
-	if err := sendCode(&mailCtx, value); err != nil {
+	if err := sendCode(&mailCtx, key, value); err != nil {
 		return fmt.Errorf("内部错误")
 	}
 
 	return nil
 }
 
-func sendCode(ctx *mail.CodeCtx, value string) error {
+func sendCode(ctx *mail.CodeCtx, key, value string) error {
 
 	rds := redis.NewRedisCient()
-	if err := rds.SetCode(ctx.Username, value, ctx.ValidMin); err != nil {
+	if err := rds.SetCode(key, value, ctx.ValidMin); err != nil {
 		log.Errorf("SetCode ERROR: %s\n", err.Error())
 		return fmt.Errorf("内部错误")
 	}
@@ -139,22 +143,23 @@ func sendCode(ctx *mail.CodeCtx, value string) error {
 	return nil
 }
 
-func validateCode(username, code string) (bool, error) {
+func validateCode(key, code string) (bool, error) {
 	rds := redis.NewRedisCient()
-	value, err := rds.GetCode(username)
+	value, err := rds.GetCode(key)
 	if err != nil {
 		log.Errorf("GetCode ERROR: %s\n", err.Error())
 		return false, fmt.Errorf("内部错误")
 	}
 
-	rds.DelCode(username)
+	rds.DelCode(key)
 
 	return value == code, nil
 }
 
 func ValidateSignUpCode(username, email, code string) (bool, error) {
-	value := fmt.Sprintf("%s %s", code, email)
-	valid, err := validateCode(username, value)
+	key := fmt.Sprintf("%s-signup", username)
+	val := fmt.Sprintf("%s %s", code, email)
+	valid, err := validateCode(key, val)
 	if err != nil {
 		return false, err
 	} else if valid {
@@ -170,7 +175,9 @@ func ValidateSignUpCode(username, email, code string) (bool, error) {
 }
 
 func ValidateResetCode(username, code string) (bool, error) {
-	valid, err := validateCode(username, code)
+	key := fmt.Sprintf("%s-reset", username)
+	val := code
+	valid, err := validateCode(key, val)
 	if err != nil {
 		return false, err
 	}

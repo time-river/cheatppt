@@ -100,10 +100,9 @@ var GlobalCfg = Cfg{
 	},
 }
 
-var GlobalKey [32]byte
 var LogOpts = &GlobalCfg.Log
-
 var Server = &GlobalCfg.Server
+var Redis = &GlobalCfg.Redis
 var Code = &GlobalCfg.Code
 var Mail = &GlobalCfg.Mail
 var OpenAI = &GlobalCfg.OpenAI

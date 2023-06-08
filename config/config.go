@@ -76,7 +76,6 @@ func secretCheck(orig *string) (secret *string, err error) {
 		key = bytes
 	}
 
-	copy(GlobalKey[:], key)
 	str := base64.StdEncoding.EncodeToString(key)
 	secret = &str
 	return

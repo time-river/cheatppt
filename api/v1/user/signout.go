@@ -13,9 +13,9 @@ import (
 func SignOut(c *gin.Context) {
 	var msg = &api.Response{Status: api.FAILURE}
 
-	raw := c.Request.Header.Get("Token")
-	token := strings.TrimSpace(strings.Replace(raw, "Bearer ", "", 1))
-	user.Logout(token)
+	auth := c.Request.Header.Get("Authorization")
+	token := strings.TrimSpace(strings.Replace(auth, "Bearer ", "", 1))
+	user.SignOut(token)
 
 	msg.Status = api.SUCCESS
 	msg.Message = "退出成功"

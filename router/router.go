@@ -15,6 +15,7 @@ const (
 	userSignUp    = "/signup"
 	userSignIn    = "/signin"
 	userSignOut   = "/signout"
+	userPing      = "/ping"
 )
 
 const (
@@ -35,19 +36,18 @@ func Initialize(router *gin.Engine) {
 		user.POST(userCode, userapiv1.UserCode)
 		user.POST(userSignUp, userapiv1.SignUp)
 		user.POST(userSignIn, userapiv1.SignIn)
-		user.POST(userSignOut, userapiv1.Guard, userapiv1.SignOut)
+		user.GET(userPing, userapiv1.TokenGuard, userapiv1.Ping)
+		user.POST(userSignOut, userapiv1.SessionGuard, userapiv1.SignOut)
 		user.POST(userReset, userapiv1.Reset)
 	}
 
-	openai := router.Group(openaiApiPrefix)
+	openai := router.Group(openaiApiPrefix, userapiv1.SessionGuard)
 	{
-		openai.Use(userapiv1.Guard)
 		openai.POST(openaiChat, openaiapiv1.Chat)
 	}
 
-	chatGPT := router.Group(chatGPTApiPrefix)
+	chatGPT := router.Group(chatGPTApiPrefix, userapiv1.SessionGuard)
 	{
-		openai.Use(userapiv1.Guard)
 		chatGPT.POST(chatGPTChat, chatgptapiv1.Chat)
 		chatGPT.PATCH(chatGPTRefreshToken, chatgptapiv1.RefreshToken)
 	}

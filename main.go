@@ -25,6 +25,7 @@ func main() {
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
 	engine.Use(gin.LoggerWithWriter(log.GetWriter()))
 	engine.Use(gin.Recovery())
 

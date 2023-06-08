@@ -2,14 +2,12 @@ package user
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 
 	"github.com/kr/pretty"
 
 	"cheatppt/controller/chat/model"
 	"cheatppt/log"
-	"cheatppt/model/redis"
 	"cheatppt/model/sql"
 	"cheatppt/utils"
 )
@@ -37,22 +35,15 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		return nil, fmt.Errorf("用户名或密码错误")
 	}
 
-	token, err := tokenGenerate(username)
+	token, err := newToken(username)
 	if err != nil {
-		log.Warnf("tokenGenerate ERROR: %s\n", err.Error())
-		return nil, errors.New("内部错误")
-	}
-
-	rds := redis.NewRedisCient()
-	if err := rds.TokenLease(token, username); err != nil {
-		log.Errorf("TokenLease ERROR: %s\n", err.Error())
-		return nil, errors.New("内部错误")
+		return nil, fmt.Errorf("内部错误")
 	}
 
 	modelSetting := model.GetSetting(user.Level)
 	data := &SignInData{
 		Email:        user.Email,
-		Token:        token,
+		Token:        *token,
 		ModelSetting: modelSetting,
 	}
 

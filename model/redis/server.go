@@ -1,8 +1,8 @@
 package redis
 
 import (
+	"runtime"
 	"sync"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 
@@ -10,8 +10,7 @@ import (
 )
 
 type Redis struct {
-	conn  *redis.Conn
-	lease time.Duration
+	conn *redis.Client
 }
 
 var onceConf sync.Once
@@ -23,18 +22,15 @@ func NewRedisCient() *Redis {
 		Addr:     conf.Addr,
 		Password: conf.Passwd,
 		DB:       conf.Db,
+		// 59 connections per every available CPU.
+		PoolSize: 50 * runtime.NumCPU(),
 	}
-	rdb := redis.NewClient(options).Conn()
-
-	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		panic(err.Error())
-	}
+	rdb := redis.NewClient(options)
 
 	if rds == nil {
 		onceConf.Do(func() {
 			rds = &Redis{
-				conn:  rdb,
-				lease: time.Duration(60 * int64(time.Second)),
+				conn: rdb,
 			}
 		})
 	}

@@ -2,145 +2,70 @@ package redis
 
 import (
 	"context"
-	"errors"
-	"sync"
 	"time"
-
-	"github.com/redis/go-redis/v9"
 )
 
-var ctx = context.Background()
-var zsetLock = sync.Mutex{}
-
-/*
- * Once get, refresh expire time immediately.
- */
-
-func (rdb *Redis) sessionCreate(key string, member string) error {
-	zsetLock.Lock()
-	defer zsetLock.Unlock()
-
-	now := time.Now().Unix()
-	val := redis.Z{
-		Score:  float64(now),
-		Member: member,
-	}
-
-	num, err := rdb.conn.ZCard(ctx, key).Result()
-	if err != nil {
-		return err
-	}
-
-	if num >= 3 {
-		pop := num - 3
-		rdb.conn.ZPopMin(ctx, key, pop)
-	}
-
-	/* ignore, all of adding new or refreshing score will be regarded as success */
-	if err := rdb.conn.ZAdd(ctx, key, val).Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (rdb *Redis) sessionPop(key string, member string) {
-	zsetLock.Lock()
-	defer zsetLock.Unlock()
-
-	rdb.conn.ZRem(ctx, key, member)
-}
-
-func (rdb *Redis) sessionRefresh(key string, member string) error {
-	zsetLock.Lock()
-	defer zsetLock.Unlock()
-
-	now := time.Now().Unix()
-	val := redis.Z{
-		Score:  float64(now),
-		Member: member,
-	}
-
-	num, err := rdb.conn.ZAdd(ctx, key, val).Result()
-	if err != nil {
-		return err
-	} else if num != 0 {
-		rdb.conn.ZRem(ctx, key, member)
-		return errors.New("Expect refresh member score but add member")
-	}
-
-	return nil
-}
-
-func (rdb *Redis) TokenLease(token string, username string) error {
-	if err := rdb.sessionCreate(username, token); err != nil {
-		return err
-	}
-
-	return rdb.conn.Set(ctx, token, username, rdb.lease).Err()
-}
-
-func (rdb *Redis) TokenRevoke(token string) {
-	/*
-	 * 1. Get(token): none stands for the token has been expired
-	 * 2. Del(token)
-	 * 3. pop ZSet(token)
-	 */
-	username, err := rdb.conn.Get(ctx, token).Result()
-	if err != nil {
-		return
-	}
-
-	err = rdb.conn.Del(ctx, token).Err()
-	if err != nil {
-		// TODO: warning here
-	}
-	rdb.sessionPop(username, token)
-}
-
-func (rdb *Redis) TokenVerify(token string) (*string, error) {
-	/*
-	 * 1. Get(token)
-	 * 2. refresh ZSet(token) timestamp
-	 * 3. Reset Expire(token) time
-	 */
-	username, err := rdb.conn.Get(ctx, token).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := rdb.sessionRefresh(username, token); err != nil {
-		return nil, err
-	}
-
-	done, err := rdb.conn.Expire(ctx, token, rdb.lease).Result()
-	if err != nil {
-		/* EXPIRE failed, but still effective
-		 * TODO: warning here
-		 */
-	} else if !done {
-		/* no one, add it */
-		if err := rdb.conn.Set(ctx, token, username, rdb.lease).Err(); err != nil {
-			return nil, err
-		}
-	}
-
-	return &username, nil
-}
-
-func (rdb *Redis) TokenValue(token string) (string, error) {
-	return rdb.conn.Get(ctx, token).Result()
-}
-
-// Verification Code op
+// verification code op:
+// 1. signup
+// 2. password reset
+//
+// (key, val):
+//  - signup: (`$username-signup`, `$code $email`)
+//  - password reset: (`$username-reset`, `$code`)
 func (rdb *Redis) SetCode(key, val string, m int) error {
+	var ctx = context.Background()
 	return rdb.conn.Set(ctx, key, val, time.Duration(m)*time.Minute).Err()
 }
 
 func (rdb *Redis) GetCode(key string) (string, error) {
+	var ctx = context.Background()
 	return rdb.conn.Get(ctx, key).Result()
 }
 
 func (rdb *Redis) DelCode(key string) error {
+	var ctx = context.Background()
 	return rdb.conn.Del(ctx, key).Err()
+}
+
+// authorization code op
+// (key, val): (token, username)
+func (rdb *Redis) SetToken(key, val string, h int) error {
+	var ctx = context.Background()
+	return rdb.conn.Set(ctx, key, val, time.Duration(h)*time.Hour).Err()
+}
+
+func (rdb *Redis) ExistsToken(key string) (int64, error) {
+	var ctx = context.Background()
+	return rdb.conn.Exists(ctx, key).Result()
+}
+
+func (rdb *Redis) RevokeToken(key string) error {
+	var ctx = context.Background()
+	// only revoke token except session
+	return rdb.conn.Del(ctx, key).Err()
+}
+
+// session op
+// (key, val): (session, token)
+func (rdb *Redis) SetSession(key, val string, h int) error {
+	var ctx = context.Background()
+	return rdb.conn.Set(ctx, key, val, time.Duration(h)*time.Hour).Err()
+}
+
+// return value: `(*string, error)``
+// `(xxx, nil)`: key exists and doesn't expire
+// `(xxx, err)`: key exists and doesn't expire, but TTL error
+// `(nil, err)`: key don't exist (expire or not set)
+func (rdb *Redis) ValidThenRenewSession(key string, h int) (*string, error) {
+	var ctx = context.Background()
+
+	// err is `nil` is key don't exists or expire
+	val, err := rdb.conn.Get(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	} else {
+		expire := time.Duration(h) * time.Hour
+		err := rdb.conn.Expire(ctx, key, expire).Err()
+		return &val, err
+	}
 }
