@@ -7,7 +7,6 @@ import (
 	"github.com/kr/pretty"
 
 	"cheatppt/api"
-	"cheatppt/controller/chat/model"
 	"cheatppt/controller/code"
 	"cheatppt/controller/user"
 	"cheatppt/log"
@@ -24,8 +23,6 @@ type SignInRsp struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Token    string `json:"token"`
-
-	ModelSetting model.Setting `json:"modelSetting"`
 }
 
 func SignIn(c *gin.Context) {
@@ -70,10 +67,9 @@ func SignIn(c *gin.Context) {
 	rsp.Status = api.SUCCESS
 	rsp.Message = "登录成功"
 	rsp.Data = SignInRsp{
-		Username:     req.Username,
-		Email:        data.Email,
-		Token:        data.Token,
-		ModelSetting: data.ModelSetting,
+		Username: req.Username,
+		Email:    data.Email,
+		Token:    data.Token,
 	}
 	c.JSON(http.StatusOK, rsp)
 }

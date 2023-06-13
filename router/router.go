@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	chatgptapiv1 "cheatppt/api/v1/chatgpt"
+	modelapiv1 "cheatppt/api/v1/model"
 	openaiapiv1 "cheatppt/api/v1/openai"
 	userapiv1 "cheatppt/api/v1/user"
 )
@@ -16,6 +17,16 @@ const (
 	userSignIn    = "/signin"
 	userSignOut   = "/signout"
 	userPing      = "/ping"
+	userCDKey     = "/cdkey"
+	userPay       = "/pay"
+)
+
+const (
+	modelApiPrefix = "/api/v1/model"
+	modelAdd       = "/add"
+	modelDel       = "/delete"
+	modelList      = "/list"
+	modelListAll   = "/listall"
 )
 
 const (
@@ -39,6 +50,16 @@ func Initialize(router *gin.Engine) {
 		user.GET(userPing, userapiv1.TokenGuard, userapiv1.Ping)
 		user.POST(userSignOut, userapiv1.SessionGuard, userapiv1.SignOut)
 		user.POST(userReset, userapiv1.Reset)
+	}
+
+	model := router.Group(modelApiPrefix)
+	{
+		// everyone can list models
+		model.GET(modelList, modelapiv1.ListAvailable)
+
+		model.POST(modelAdd, userapiv1.AdminGuard, modelapiv1.Add)
+		model.POST(modelDel, userapiv1.AdminGuard, modelapiv1.Del)
+		model.GET(modelListAll, userapiv1.AdminGuard, modelapiv1.ListAll)
 	}
 
 	openai := router.Group(openaiApiPrefix, userapiv1.SessionGuard)

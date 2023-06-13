@@ -11,7 +11,7 @@ import (
 	"github.com/kr/pretty"
 
 	"cheatppt/controller/chat/chatgpt"
-	"cheatppt/controller/chat/model"
+	"cheatppt/controller/model"
 	"cheatppt/log"
 )
 

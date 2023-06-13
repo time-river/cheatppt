@@ -1,20 +1,36 @@
 package sql
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "time"
 
 type User struct {
-	gorm.Model
-	Username  string `gorm:"UniqueIndex"`
-	Email     string
+	ID        uint   `gorm:"primaryKey"`
+	Username  string `gorm:"uniqueIndex"`
+	Email     string `gorm:"uniqueIndex"`
 	Password  []byte
+	Level     int
+	Coins     int
 	Activated bool
 	Deleted   bool
-	Level     int
-	VipEnd    time.Time
+	CreatedAt time.Time
+	DeletedAt time.Time
+}
+
+type UserRechargeRecord struct {
+	ID            uint    `gorm:"primaryKey"`
+	UserID        uint    `gorm:"index"`
+	Amount        float64 `gorm:"type:decimal(10,2)"`
+	Coins         int
+	CreatedAt     time.Time
+	PaymentMethod string `gorm:"TINYTEXT"`
+	User          User   `gorm:"foreignKey:UserID"`
+}
+
+type DailyFree struct {
+	ID     uint      `gorm:"primaryKey"`
+	UserID uint      `gorm:"index"`
+	Date   time.Time `gorm:"index"`
+	Coins  int
+	User   User `gorm:"foreignKey:UserID"`
 }
 
 func userTableInit() {

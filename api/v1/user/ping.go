@@ -6,22 +6,24 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"cheatppt/api"
+	"cheatppt/controller/model"
 	"cheatppt/controller/user"
 )
 
 type PingRsp struct {
-	SessionId string `json:"sessionId"`
+	SessionId string        `json:"sessionId"`
+	Models    []model.Model `json:"models"`
 }
 
 func Ping(c *gin.Context) {
 	var session string
 	var rsp = &api.Response{Status: api.FAILURE}
 
-	raw, exist := c.Get(sessionName)
+	raw, exist := c.Get(SessionName)
 	if exist {
 		session = raw.(string)
 	} else {
-		raw, exist := c.Get(tokenName)
+		raw, exist := c.Get(TokenName)
 		if !exist {
 			rsp.Message = "内部错误"
 			c.AbortWithStatusJSON(http.StatusInternalServerError, rsp)
@@ -39,9 +41,17 @@ func Ping(c *gin.Context) {
 		session = *val
 	}
 
+	data, err := model.ListAvailable()
+	if err != nil {
+		rsp.Message = err.Error()
+		c.AbortWithStatusJSON(http.StatusInternalServerError, rsp)
+		return
+	}
+
 	rsp.Status = api.SUCCESS
 	rsp.Data = PingRsp{
 		SessionId: session,
+		Models:    data,
 	}
 	c.JSON(http.StatusOK, rsp)
 }

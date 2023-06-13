@@ -10,11 +10,11 @@ import (
 	"cheatppt/controller/user"
 )
 
-const sessionName = "sessionId"
-const tokenName = "tokenId"
+const SessionName = "x-sessionId"
+const TokenName = "x-tokenId"
 
 func SessionGuard(c *gin.Context) {
-	session := c.Request.Header.Get(sessionName)
+	session := c.Request.Header.Get(SessionName)
 	if len(session) == 0 {
 		msg := &api.Response{
 			Status:  api.UNAUTHORIZED,
@@ -34,7 +34,7 @@ func SessionGuard(c *gin.Context) {
 		return
 	}
 
-	c.Set(tokenName, token)
+	c.Set(TokenName, token)
 
 	c.Next()
 }
@@ -67,7 +67,11 @@ func TokenGuard(c *gin.Context) {
 		return
 	}
 
-	c.Set(tokenName, token)
+	c.Set(TokenName, token)
 
 	c.Next()
+}
+
+func AdminGuard(c *gin.Context) {
+
 }

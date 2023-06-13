@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
 
-	"cheatppt/controller/chat/model"
 	"cheatppt/controller/chat/openai"
+	"cheatppt/controller/model"
 	"cheatppt/log"
 )
 

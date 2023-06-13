@@ -6,7 +6,6 @@ import (
 
 	"github.com/kr/pretty"
 
-	"cheatppt/controller/chat/model"
 	"cheatppt/log"
 	"cheatppt/model/sql"
 	"cheatppt/utils"
@@ -15,8 +14,6 @@ import (
 type SignInData struct {
 	Email string
 	Token string
-
-	ModelSetting model.Setting
 }
 
 func SignIn(username, passwd string) (*SignInData, error) {
@@ -40,11 +37,9 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		return nil, fmt.Errorf("内部错误")
 	}
 
-	modelSetting := model.GetSetting(user.Level)
 	data := &SignInData{
-		Email:        user.Email,
-		Token:        *token,
-		ModelSetting: modelSetting,
+		Email: user.Email,
+		Token: *token,
 	}
 
 	log.Trace(pretty.Sprint(data))
