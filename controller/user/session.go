@@ -1,10 +1,12 @@
 package user
 
 import (
-	"cheatppt/log"
-	"cheatppt/model/redis"
 	"encoding/base64"
 	"math/rand"
+
+	log "github.com/sirupsen/logrus"
+
+	"cheatppt/model/redis"
 )
 
 const sessionValidHour = 12 // validity period, hours

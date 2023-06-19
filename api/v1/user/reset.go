@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/api"
 	"cheatppt/controller/user"
-	"cheatppt/log"
 	"cheatppt/utils"
 )
 
@@ -24,7 +24,7 @@ func Reset(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp.Message = "非法请求"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
 		return
 	}
 
@@ -32,18 +32,18 @@ func Reset(c *gin.Context) {
 
 	if !utils.UsernameCheck(req.Username) {
 		rsp.Message = "用户无效"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 
 	valid, err := user.ValidateResetCode(req.Username, req.Code)
 	if err != nil {
 		rsp.Message = err.Error()
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	} else if !valid {
 		rsp.Message = "验证码无效"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 

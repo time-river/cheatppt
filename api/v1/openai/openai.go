@@ -7,14 +7,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
+	openaiapi "github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 
+	userapiv1 "cheatppt/api/v1/user"
 	"cheatppt/controller/chat/openai"
-	"cheatppt/controller/model"
-	"cheatppt/log"
 )
 
+type ChatReq struct {
+	openaiapi.ChatCompletionRequest
+}
+
 func Chat(c *gin.Context) {
-	var req openai.ChatReq
+	var req ChatReq
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp := &openai.ChatErrRsp{
@@ -29,21 +34,12 @@ func Chat(c *gin.Context) {
 
 	log.Debug(pretty.Sprint(req))
 
-	if !model.Allow(req.Model) {
-		rsp := &openai.ChatErrRsp{
-			Error: &openai.ChatAPIErr{
-				Type: "invalid_request_error",
-				Code: "invalid_model",
-			},
-		}
-		c.JSON(http.StatusOK, rsp)
-		return
-	}
-
 	ctx := context.Background()
 	opts := openai.ChatOpts{
-		Ctx: ctx,
-		Req: openai.ChatReq(req),
+		Ctx:    ctx,
+		UserId: c.GetInt(userapiv1.UserId),
+		Model:  req.Model,
+		Req:    req.ChatCompletionRequest,
 	}
 
 	session, err := openai.NewChat(&opts)

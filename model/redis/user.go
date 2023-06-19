@@ -3,7 +3,13 @@ package redis
 import (
 	"context"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
+
+func (rdb *Redis) GetClient() *redis.Client {
+	return rdb.conn
+}
 
 // verification code op:
 // 1. signup

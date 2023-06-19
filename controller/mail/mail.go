@@ -7,8 +7,9 @@ import (
 	"net/mail"
 	"net/smtp"
 
+	log "github.com/sirupsen/logrus"
+
 	"cheatppt/config"
-	"cheatppt/log"
 )
 
 type CodeCtx struct {
@@ -82,45 +83,45 @@ func tlsSendMail(mail *TLSMail) error {
 	// from the very beginning (no starttls)
 	conn, err := tls.Dial("tcp", mail.serverName, tlsconfig)
 	if err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 
 	c, err := smtp.NewClient(conn, host)
 	if err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 	defer c.Quit()
 
 	// Auth
 	if err = c.Auth(auth); err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 
 	// To && From
 	if err = c.Mail(mail.fromAddr); err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 
 	if err = c.Rcpt(mail.toAddr); err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 
 	// Data
 	w, err := c.Data()
 	if err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 	defer w.Close()
 
 	_, err = w.Write([]byte(mail.message))
 	if err != nil {
-		log.Warnf("SendMail ERROR: %s\n", err.Error)
+		log.Warnf("SendMail ERROR: %s\n", err.Error())
 		return err
 	}
 

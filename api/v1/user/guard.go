@@ -5,27 +5,36 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/api"
 	"cheatppt/controller/user"
 )
 
-const SessionName = "x-sessionId"
-const TokenName = "x-tokenId"
+const SessionName = "X-SessionId"
+const TokenName = "X-TokenId"
+const UserId = "X-UserId"
+const UserLevel = "X-UserLevel"
 
-func SessionGuard(c *gin.Context) {
+func sessionParse(c *gin.Context) *user.Claims {
 	session := c.Request.Header.Get(SessionName)
 	if len(session) == 0 {
-		msg := &api.Response{
-			Status:  api.UNAUTHORIZED,
-			Message: "Error: 无访问权限 | No access rights",
-		}
-		c.AbortWithStatusJSON(http.StatusUnauthorized, msg)
-		return
+		return nil
 	}
 
 	token, permit := user.ValidSession(session)
 	if !permit {
+		return nil
+	}
+
+	c.Set(TokenName, token)
+	return user.TokenParse(token)
+}
+
+func SessionGuard(c *gin.Context) {
+	claims := sessionParse(c)
+	if claims == nil {
 		msg := &api.Response{
 			Status:  api.UNAUTHORIZED,
 			Message: "Error: 无访问权限 | No access rights",
@@ -34,8 +43,10 @@ func SessionGuard(c *gin.Context) {
 		return
 	}
 
-	c.Set(TokenName, token)
+	log.Trace(pretty.Sprint(claims))
 
+	c.Set(UserId, claims.UserID)
+	c.Set(UserLevel, claims.UserLevel)
 	c.Next()
 }
 
@@ -73,5 +84,20 @@ func TokenGuard(c *gin.Context) {
 }
 
 func AdminGuard(c *gin.Context) {
+	claims := sessionParse(c)
+	if claims == nil || claims.UserLevel != 0 {
+		msg := &api.Response{
+			Status:  api.UNAUTHORIZED,
+			Message: "Error: 无访问权限 | No access rights",
+		}
+		c.AbortWithStatusJSON(http.StatusUnauthorized, msg)
+		return
+	}
 
+	log.Trace(pretty.Sprint(claims))
+
+	c.Set(UserId, claims.UserID)
+	c.Set(UserLevel, claims.UserLevel)
+
+	c.Next()
 }

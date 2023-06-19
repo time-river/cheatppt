@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
-	"cheatppt/log"
 	"cheatppt/model/sql"
 	"cheatppt/utils"
 )
@@ -32,7 +32,7 @@ func SignIn(username, passwd string) (*SignInData, error) {
 		return nil, fmt.Errorf("用户名或密码错误")
 	}
 
-	token, err := newToken(username)
+	token, err := newToken(&user)
 	if err != nil {
 		return nil, fmt.Errorf("内部错误")
 	}

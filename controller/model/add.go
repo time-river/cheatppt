@@ -1,9 +1,11 @@
 package model
 
 import (
-	"cheatppt/log"
-	"cheatppt/model/sql"
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
+
+	"cheatppt/model/sql"
 )
 
 type AddDetail struct {
@@ -11,7 +13,8 @@ type AddDetail struct {
 	DisplayName string
 	ModelName   string
 	Provider    string
-	LeastCoins  int
+	InputCoins  int
+	OutputCoins int
 	Activated   bool
 }
 
@@ -21,16 +24,16 @@ func Add(detail *AddDetail, create bool) error {
 		DisplayName: detail.DisplayName,
 		ModelName:   detail.ModelName,
 		Provider:    detail.Provider,
-		LeastCoins:  detail.LeastCoins,
+		InputCoins:  detail.InputCoins,
+		OutputCoins: detail.OutputCoins,
 		Activated:   detail.Activated,
 	}
 
 	db := sql.NewSQLClient()
 	if create {
-		model.ID = detail.Id
 		err = db.Model(&sql.Model{}).Create(&model).Error
 	} else {
-		err = db.Model(&sql.Model{}).Updates(&model).Error
+		err = db.Model(&sql.Model{}).Where("id = ?", detail.Id).Updates(&model).Error
 	}
 
 	if err != nil {

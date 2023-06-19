@@ -3,11 +3,13 @@ package sql
 import "time"
 
 type Model struct {
-	ID          uint   `gorm:"primaryKey"`
+	// TODO: ensure id is from 100
+	ID          uint   `gorm:"primaryKey,AUTO_INCREMENT=100"`
 	DisplayName string `gorm:"unique"`
-	ModelName   string
+	ModelName   string `gorm:"index"`
 	Provider    string `gorm:"index"`
-	LeastCoins  int
+	InputCoins  int
+	OutputCoins int
 	Comment     string `gorm:"type:text"`
 	Activated   bool
 	CreatedAt   time.Time
@@ -24,6 +26,10 @@ type ModelSwitchMapping struct {
 func modelTableInit() {
 	db := NewSQLClient()
 	if err := db.AutoMigrate(&Model{}); err != nil {
+		panic(err)
+	}
+
+	if err := db.AutoMigrate(&ModelSwitchMapping{}); err != nil {
 		panic(err)
 	}
 }

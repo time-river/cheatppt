@@ -3,7 +3,8 @@ package model
 import (
 	"fmt"
 
-	"cheatppt/log"
+	log "github.com/sirupsen/logrus"
+
 	"cheatppt/model/sql"
 )
 
@@ -12,7 +13,8 @@ type Model struct {
 	DisplayName string `json:"displayName"`
 	ModelName   string `json:"modelName"`
 	Provider    string `json:"provider"`
-	LeastCoins  int    `json:"leastCoins"`
+	InputCoins  int    `json:"inputCoins"`
+	OutputCoins int    `json:"outputCoins"`
 	Activated   bool   `json:"activated"`
 	Comment     string `json:"comment,omitempty"`
 	CreatedAt   int64  `json:"createAt,omitempty"`
@@ -39,7 +41,8 @@ func ListAvailable() ([]Model, error) {
 			DisplayName: model.DisplayName,
 			ModelName:   model.ModelName,
 			Provider:    model.Provider,
-			LeastCoins:  model.LeastCoins,
+			InputCoins:  model.InputCoins,
+			OutputCoins: model.OutputCoins,
 			Activated:   model.Activated,
 		}
 		data = append(data, m)
@@ -65,7 +68,8 @@ func ListAll() ([]Model, error) {
 			DisplayName: model.DisplayName,
 			ModelName:   model.ModelName,
 			Provider:    model.Provider,
-			LeastCoins:  model.LeastCoins,
+			InputCoins:  model.InputCoins,
+			OutputCoins: model.OutputCoins,
 			Activated:   model.Activated,
 			Comment:     model.Comment,
 			CreatedAt:   model.CreatedAt.Unix(),

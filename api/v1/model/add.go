@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/api"
 	"cheatppt/controller/model"
@@ -16,11 +18,12 @@ const (
 
 type AddReq struct {
 	Type        string `json:"type"`
-	Id          uint   `json:"Id,omitempty"`
+	Id          uint   `json:"id,omitempty"`
 	DisplayName string `json:"displayName"`
 	ModelName   string `json:"modelName"`
 	Provider    string `json:"provider"`
-	LeastCoins  int    `json:"leastCoins"`
+	InputCoins  int    `json:"inputCoins"`
+	OutputCoins int    `json:"outputCoins"`
 	Activated   bool   `json:"activated,omitempty"`
 }
 
@@ -30,15 +33,18 @@ func Add(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp.Message = "非法请求"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
 		return
 	}
+
+	log.Debug(pretty.Sprint(req))
 
 	detail := model.AddDetail{
 		DisplayName: req.DisplayName,
 		ModelName:   req.ModelName,
 		Provider:    req.Provider,
-		LeastCoins:  req.LeastCoins,
+		InputCoins:  req.InputCoins,
+		OutputCoins: req.OutputCoins,
 		Activated:   req.Activated,
 	}
 

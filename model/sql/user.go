@@ -3,7 +3,7 @@ package sql
 import "time"
 
 type User struct {
-	ID        uint   `gorm:"primaryKey"`
+	ID        uint   `gorm:"primaryKey,AUTO_INCREMENT=100"`
 	Username  string `gorm:"uniqueIndex"`
 	Email     string `gorm:"uniqueIndex"`
 	Password  []byte
@@ -15,10 +15,10 @@ type User struct {
 	DeletedAt time.Time
 }
 
-type UserRechargeRecord struct {
-	ID            uint    `gorm:"primaryKey"`
-	UserID        uint    `gorm:"index"`
-	Amount        float64 `gorm:"type:decimal(10,2)"`
+type UserVoiceRecord struct {
+	ID            uint `gorm:"primaryKey"`
+	UserID        uint `gorm:"index"`
+	Amount        int
 	Coins         int
 	CreatedAt     time.Time
 	PaymentMethod string `gorm:"TINYTEXT"`
@@ -36,6 +36,14 @@ type DailyFree struct {
 func userTableInit() {
 	db := NewSQLClient()
 	if err := db.AutoMigrate(&User{}); err != nil {
+		panic(err)
+	}
+
+	if err := db.AutoMigrate(&UserVoiceRecord{}); err != nil {
+		panic(err)
+	}
+
+	if err := db.AutoMigrate(&DailyFree{}); err != nil {
 		panic(err)
 	}
 }

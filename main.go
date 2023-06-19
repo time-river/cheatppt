@@ -6,17 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"cheatppt/config"
+	"cheatppt/controller"
 	"cheatppt/log"
 	"cheatppt/model/sql"
 	"cheatppt/router"
 )
 
-// TODO: log
-
 func main() {
 	config.CmdlineParse()
 
 	debug := log.Setup()
+	controller.Setup()
 
 	// TODO: env check
 	sql.DatabaseInit()

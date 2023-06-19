@@ -3,7 +3,8 @@ package model
 import (
 	"fmt"
 
-	"cheatppt/log"
+	log "github.com/sirupsen/logrus"
+
 	"cheatppt/model/sql"
 )
 

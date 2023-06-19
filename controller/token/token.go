@@ -6,8 +6,7 @@ import (
 
 	"github.com/pkoukk/tiktoken-go"
 	"github.com/sashabaranov/go-openai"
-
-	"cheatppt/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Usage struct {

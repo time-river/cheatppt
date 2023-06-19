@@ -9,17 +9,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/controller/chat/chatgpt"
-	"cheatppt/controller/model"
-	"cheatppt/log"
 )
 
 type ChatReq struct {
-	Model   string                      `json:"model"`
-	Prompt  string                      `json:"prompt"`
-	Options chatgpt.ConversationOptions `json:"options"`
-	Timeout uint                        `json:"timeout,omitempty"`
+	Model         string                      `json:"model"`
+	Prompt        string                      `json:"prompt"`
+	Options       chatgpt.ConversationOptions `json:"options"`
+	Timeout       uint                        `json:"timeout,omitempty"`
+	Authorization *string                     `json:"authorization"`
+	Puid          *string                     `json:"puid"`
 }
 
 type APIError struct {
@@ -49,15 +50,6 @@ func Chat(c *gin.Context) {
 	}
 
 	log.Debug(pretty.Sprint(req))
-
-	if !model.Allow(req.Model) {
-		rsp.Error = &APIError{
-			Type: "invalid_request_error",
-			Code: "invalid_model",
-		}
-		c.JSON(http.StatusOK, rsp)
-		return
-	}
 
 	if req.Timeout == 0 {
 		req.Timeout = 60

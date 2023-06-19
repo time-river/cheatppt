@@ -5,12 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/api"
 	"cheatppt/config"
 	"cheatppt/controller/code"
 	"cheatppt/controller/user"
-	"cheatppt/log"
 	"cheatppt/utils"
 )
 
@@ -36,7 +36,7 @@ func UserCode(c *gin.Context) {
 
 	if err := c.BindJSON((&req)); err != nil {
 		rsp.Message = "非法请求"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
 		return
 	}
 
@@ -53,11 +53,11 @@ func UserCode(c *gin.Context) {
 	isHuman, err := code.Confirm(ip, token)
 	if err != nil {
 		rsp.Message = "内部错误"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	} else if !isHuman {
 		rsp.Message = "非法请求"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 

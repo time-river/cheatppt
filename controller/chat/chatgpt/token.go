@@ -5,8 +5,9 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"cheatppt/config"
-	"cheatppt/log"
 )
 
 var mutex sync.Mutex

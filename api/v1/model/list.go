@@ -17,7 +17,7 @@ func ListAvailable(c *gin.Context) {
 			Message: err.Error(),
 		}
 
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 
@@ -36,7 +36,7 @@ func ListAll(c *gin.Context) {
 			Message: err.Error(),
 		}
 
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 

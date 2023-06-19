@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"cheatppt/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type streamReader struct {

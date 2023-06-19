@@ -13,6 +13,7 @@ import (
 type PingRsp struct {
 	SessionId string        `json:"sessionId"`
 	Models    []model.Model `json:"models"`
+	Default   int           `json:"defaultModel"`
 }
 
 func Ping(c *gin.Context) {
@@ -26,7 +27,7 @@ func Ping(c *gin.Context) {
 		raw, exist := c.Get(TokenName)
 		if !exist {
 			rsp.Message = "内部错误"
-			c.AbortWithStatusJSON(http.StatusInternalServerError, rsp)
+			c.JSON(http.StatusInternalServerError, rsp)
 			return
 		}
 
@@ -34,7 +35,7 @@ func Ping(c *gin.Context) {
 		val := user.NewSession(token)
 		if val == nil {
 			rsp.Message = "内部错误"
-			c.AbortWithStatusJSON(http.StatusInternalServerError, rsp)
+			c.JSON(http.StatusInternalServerError, rsp)
 			return
 		}
 
@@ -44,7 +45,7 @@ func Ping(c *gin.Context) {
 	data, err := model.ListAvailable()
 	if err != nil {
 		rsp.Message = err.Error()
-		c.AbortWithStatusJSON(http.StatusInternalServerError, rsp)
+		c.JSON(http.StatusInternalServerError, rsp)
 		return
 	}
 
@@ -52,6 +53,7 @@ func Ping(c *gin.Context) {
 	rsp.Data = PingRsp{
 		SessionId: session,
 		Models:    data,
+		Default:   0,
 	}
 	c.JSON(http.StatusOK, rsp)
 }

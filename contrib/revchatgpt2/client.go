@@ -2,11 +2,12 @@ package revchatgpt2
 
 import (
 	"bufio"
-	"cheatppt/log"
 	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {

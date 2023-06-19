@@ -7,22 +7,23 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"cheatppt/controller/mail"
-	"cheatppt/log"
 	"cheatppt/model/redis"
 	"cheatppt/model/sql"
 )
 
 // triplet: (username, email, code)
 const codeValidMin = 30 // validity period, minutes
+const codeLength = 6
 
-func generateCode() string {
+func generateCode(length int) string {
 	rand.Seed(time.Now().UnixNano())
 
 	const lettersAndDigits = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`
-	code := make([]byte, 6)
+	code := make([]byte, length)
 	for i := range code {
 		code[i] = lettersAndDigits[rand.Intn(len(lettersAndDigits))]
 	}
@@ -49,7 +50,7 @@ func GenerateResetCode(username string) error {
 	mailCtx := mail.CodeCtx{
 		Username: username,
 		Email:    user.Email,
-		Code:     generateCode(),
+		Code:     generateCode(codeLength),
 		ValidMin: codeValidMin,
 	}
 
@@ -113,7 +114,7 @@ func GenerateSignUpCode(username, email string) error {
 	mailCtx := mail.CodeCtx{
 		Username: username,
 		Email:    email,
-		Code:     generateCode(),
+		Code:     generateCode(codeLength),
 		ValidMin: codeValidMin,
 	}
 

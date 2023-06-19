@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"cheatppt/config"
 	"regexp"
 
 	"golang.org/x/crypto/sha3"
+
+	"cheatppt/config"
 )
 
 func Must[T interface{}](v T, err error) T {
@@ -45,4 +46,18 @@ func PasswordCheck(passwd string) bool {
 	regex := regexp.MustCompile(pattern)
 
 	return regex.MatchString(passwd)
+}
+
+func Find2power(size int) int {
+	nr := 2
+
+	for {
+		if nr <= size {
+			nr *= 2
+		} else {
+			break
+		}
+	}
+
+	return nr
 }

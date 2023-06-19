@@ -22,4 +22,6 @@ func NewSQLClient() *gorm.DB {
 func DatabaseInit() {
 	userTableInit()
 	modelTableInit()
+	chatTableInit()
+	initChatGPT()
 }

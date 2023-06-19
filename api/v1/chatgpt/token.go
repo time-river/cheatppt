@@ -19,7 +19,7 @@ func RefreshToken(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp.Message = "非法参数"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
 		return
 	}
 

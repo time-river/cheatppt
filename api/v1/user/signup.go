@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/api"
 	"cheatppt/config"
 	"cheatppt/controller/user"
-	"cheatppt/log"
 	"cheatppt/utils"
 )
 
@@ -32,7 +32,7 @@ func SignUp(c *gin.Context) {
 
 	if err := c.BindJSON(&req); err != nil {
 		rsp.Message = "非法请求"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
 		return
 	}
 
@@ -41,15 +41,15 @@ func SignUp(c *gin.Context) {
 
 	if !utils.UsernameCheck(req.Username) {
 		rsp.Message = "非法的用户名"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	} else if !utils.EmailCheck(req.Email) {
 		rsp.Message = "非法的邮箱"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	} else if !utils.PasswordCheck(req.Password) {
 		rsp.Message = "非法的密码"
-		c.AbortWithStatusJSON(http.StatusOK, rsp)
+		c.JSON(http.StatusOK, rsp)
 		return
 	}
 

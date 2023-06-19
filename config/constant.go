@@ -42,6 +42,7 @@ type ChatGPTCfg struct {
 	ReverseProxyUrl string `toml:"url"`
 	TimeoutSec      uint   `toml:"timeout"` // unit: second
 	ChatGPTToken    string `toml:"token"`
+	HttpProxy       string `toml:"http-proxy"`
 }
 
 type LogCfg struct {

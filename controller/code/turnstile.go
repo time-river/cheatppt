@@ -8,9 +8,9 @@ import (
 	"net/url"
 
 	"github.com/kr/pretty"
+	log "github.com/sirupsen/logrus"
 
 	"cheatppt/config"
-	"cheatppt/log"
 )
 
 type response struct {

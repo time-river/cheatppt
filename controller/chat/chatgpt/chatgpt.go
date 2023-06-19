@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	log "github.com/sirupsen/logrus"
+
 	"cheatppt/config"
 	"cheatppt/contrib/revchatgpt2"
 	"cheatppt/controller/token"
-	"cheatppt/log"
 )
 
 type ConversationOptions struct {

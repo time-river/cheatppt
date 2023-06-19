@@ -8,10 +8,15 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"cheatppt/config"
+	"cheatppt/controller/charge"
+	"cheatppt/controller/model"
+	"cheatppt/controller/qos"
 	"cheatppt/controller/token"
-	"cheatppt/log"
+	"cheatppt/model/sql"
 )
 
 type ChatRsp struct {
@@ -25,17 +30,27 @@ type ChatErrRsp struct {
 	Error *ChatAPIErr `json:"error,omitempty"`
 }
 
-type ChatReq openai.ChatCompletionRequest
-
 type ChatOpts struct {
-	Ctx context.Context
-	Req ChatReq
+	Ctx    context.Context
+	UserId int
+	Model  string
+	Req    openai.ChatCompletionRequest
 }
 
 type ChatSession struct {
-	stream *openai.ChatCompletionStream
-	usage  token.Usage
+	stream      *openai.ChatCompletionStream
+	usage       token.Usage
+	UserId      int
+	Model       string
+	InputCoins  int
+	OutputCoins int
+
+	db      *gorm.DB
+	prompt  string
+	message string
 }
+
+const Provider = "openai"
 
 func buildCfg() openai.ClientConfig {
 	conf := config.OpenAI
@@ -57,15 +72,62 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 			PromptTokens:     0,
 			CompletionTokens: 0,
 		},
+		UserId: opts.UserId,
+		Model:  opts.Model,
+
+		db:      sql.NewSQLClient(),
+		message: "",
 	}
 	var err error
 
-	session.usage.PromptTokens, err = token.CountPromptToken(opts.Req.Model, opts.Req.Messages)
+	// 1. does the model exist?
+	model := model.Find(session.Model, Provider)
+	if model == nil || !model.Activated {
+		return nil, &ChatErrRsp{
+			Error: &ChatAPIErr{
+				Type:    "input_error",
+				Message: "模型不存在",
+			},
+		}
+	}
+
+	session.InputCoins = model.InputCoins
+	session.OutputCoins = model.OutputCoins
+
+	promptTokens, err := token.CountPromptToken(opts.Req.Model, opts.Req.Messages)
 	if err != nil {
 		return nil, &ChatErrRsp{
 			Error: &ChatAPIErr{
 				Type:    "internal_tiktok_error",
 				Message: err.Error(),
+			},
+		}
+	}
+	session.usage.PromptTokens = promptTokens
+	price := promptTokens * model.InputCoins
+
+	// 2. does the user exist?
+	consumer, err := charge.Comsume(session.UserId, price, false)
+	if err != nil {
+		return nil, &ChatErrRsp{
+			Error: &ChatAPIErr{
+				Type:    "internal_tiktok_error",
+				Message: err.Error(),
+			},
+		}
+	}
+
+	// 3. ratelimit
+	qosMeta := qos.Meta{
+		Consumer: *consumer,
+		Model:    session.Model,
+		Provider: Provider,
+	}
+	if !qos.Allow(&qosMeta) {
+		return nil, &ChatErrRsp{
+			Error: &ChatAPIErr{
+				Type:    "rate_limit",
+				Message: "too many request",
 			},
 		}
 	}
@@ -111,6 +173,16 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 		}
 	}
 
+	chatSession := sql.ChatSession{
+		UserID: uint(session.UserId),
+	}
+	session.db.Save(&chatSession)
+	chatMessage := sql.ChatMessage{
+		ModelDisplayName: model.DisplayName,
+		Message:          "》》",
+	}
+	session.db.Save(&chatMessage)
+
 	return &session, nil
 }
 
@@ -118,17 +190,21 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 	var rsp ChatRsp
 
 	data, err := c.stream.Recv()
-	if err != nil && err == io.EOF {
-		return nil, err
-	} else if err != nil {
-		log.Warnf("Recv Msg ERROR: %s\n", err.Error())
-		return nil, err
+	if err != nil {
+		price := c.OutputCoins * c.usage.CompletionTokens
+		charge.Comsume(c.UserId, price, true)
+		if err == io.EOF {
+			return nil, err
+		} else {
+			log.Errorf("OPENAI Recv ERROR: %s\n", err.Error())
+		}
 	}
 
 	log.Trace(pretty.Sprint(data))
 
 	// each response in stream regards as one token
 	c.usage.CompletionTokens += 1
+	c.message += data.Choices[0].Delta.Content
 	rsp = ChatRsp{
 		ChatCompletionStreamResponse: data,
 		Usage:                        c.usage,

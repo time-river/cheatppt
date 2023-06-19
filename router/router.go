@@ -17,8 +17,12 @@ const (
 	userSignIn    = "/signin"
 	userSignOut   = "/signout"
 	userPing      = "/ping"
-	userCDKey     = "/cdkey"
+	userDetail    = "/detail"
+	userCDKey     = "/exgcdkey"
+	userGenCDKey  = "/gencdkey"
+	userListCDKey = "/listcdkeys"
 	userPay       = "/pay"
+	userBalance   = "/balance"
 )
 
 const (
@@ -30,14 +34,17 @@ const (
 )
 
 const (
-	openaiApiPrefix = "/api/openai/v1"
-	openaiChat      = "/chat/completions"
+	openaiApiPrefix = "/api/v1/openai"
+	openaiChat      = "conversation"
 )
 
 const (
 	chatGPTApiPrefix    = "/api/v1/chatgpt"
-	chatGPTChat         = "/chat"
-	chatGPTRefreshToken = "/refresh"
+	chatGPTChat         = "conversation"
+	chatGPTAddAccount   = "addaccount"
+	chatGPTDelAccount   = "delaccount"
+	chatGPTListAccounts = "listaccounts"
+	chatGPTLogin        = "login"
 )
 
 func Initialize(router *gin.Engine) {
@@ -47,15 +54,21 @@ func Initialize(router *gin.Engine) {
 		user.POST(userCode, userapiv1.UserCode)
 		user.POST(userSignUp, userapiv1.SignUp)
 		user.POST(userSignIn, userapiv1.SignIn)
-		user.GET(userPing, userapiv1.TokenGuard, userapiv1.Ping)
-		user.POST(userSignOut, userapiv1.SessionGuard, userapiv1.SignOut)
 		user.POST(userReset, userapiv1.Reset)
+
+		user.GET(userPing, userapiv1.TokenGuard, userapiv1.Ping)
+		user.GET(userDetail, userapiv1.SessionGuard, userapiv1.Detail)
+		user.POST(userSignOut, userapiv1.SessionGuard, userapiv1.SignOut)
+		user.POST(userCDKey, userapiv1.SessionGuard, userapiv1.ExgCDkey)
+
+		user.POST(userGenCDKey, userapiv1.AdminGuard, userapiv1.GenCDKey)
+		user.GET(userListCDKey, userapiv1.AdminGuard, userapiv1.ListCDKeys)
 	}
 
 	model := router.Group(modelApiPrefix)
 	{
 		// everyone can list models
-		model.GET(modelList, modelapiv1.ListAvailable)
+		model.GET(modelList, userapiv1.SessionGuard, modelapiv1.ListAvailable)
 
 		model.POST(modelAdd, userapiv1.AdminGuard, modelapiv1.Add)
 		model.POST(modelDel, userapiv1.AdminGuard, modelapiv1.Del)
@@ -64,12 +77,16 @@ func Initialize(router *gin.Engine) {
 
 	openai := router.Group(openaiApiPrefix, userapiv1.SessionGuard)
 	{
-		openai.POST(openaiChat, openaiapiv1.Chat)
+		openai.POST(openaiChat, userapiv1.SessionGuard, openaiapiv1.Chat)
 	}
 
 	chatGPT := router.Group(chatGPTApiPrefix, userapiv1.SessionGuard)
 	{
-		chatGPT.POST(chatGPTChat, chatgptapiv1.Chat)
-		chatGPT.PATCH(chatGPTRefreshToken, chatgptapiv1.RefreshToken)
+		chatGPT.POST(chatGPTLogin, userapiv1.SessionGuard, chatgptapiv1.Login)
+		chatGPT.POST(chatGPTChat, userapiv1.SessionGuard, chatgptapiv1.Conversation)
+
+		chatGPT.POST(chatGPTAddAccount, userapiv1.AdminGuard, chatgptapiv1.AddAccount)
+		chatGPT.POST(chatGPTDelAccount, userapiv1.AdminGuard, chatgptapiv1.DelAccount)
+		chatGPT.GET(chatGPTListAccounts, userapiv1.AdminGuard, chatgptapiv1.ListAccounts)
 	}
 }
