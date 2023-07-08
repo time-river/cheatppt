@@ -9,14 +9,12 @@ import (
 	"github.com/kr/pretty"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 
 	"cheatppt/config"
-	"cheatppt/controller/charge"
+	"cheatppt/controller/billing"
 	"cheatppt/controller/model"
 	"cheatppt/controller/qos"
 	"cheatppt/controller/token"
-	"cheatppt/model/sql"
 )
 
 type ChatRsp struct {
@@ -45,12 +43,14 @@ type ChatSession struct {
 	InputCoins  int
 	OutputCoins int
 
-	db      *gorm.DB
-	prompt  string
-	message string
+	retry    int
+	consumer *billing.Consumer
 }
 
-const Provider = "openai"
+const (
+	Provider  = "openai"
+	MAX_RETRY = 3
+)
 
 func buildCfg() openai.ClientConfig {
 	conf := config.OpenAI
@@ -75,14 +75,13 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 		UserId: opts.UserId,
 		Model:  opts.Model,
 
-		db:      sql.NewSQLClient(),
-		message: "",
+		retry: 0,
 	}
 	var err error
 
 	// 1. does the model exist?
-	model := model.Find(session.Model, Provider)
-	if model == nil || !model.Activated {
+	model, ok := model.CacheFind(model.BuildCacheKey(Provider, opts.Model))
+	if !ok || !model.Activated {
 		return nil, &ChatErrRsp{
 			Error: &ChatAPIErr{
 				Type:    "input_error",
@@ -104,10 +103,10 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 		}
 	}
 	session.usage.PromptTokens = promptTokens
-	price := promptTokens * model.InputCoins
+	promptPrice := promptTokens * model.InputCoins
 
-	// 2. does the user exist?
-	consumer, err := charge.Comsume(session.UserId, price, false)
+	// 2. try to consume
+	session.consumer, err = billing.GetComsumer(session.UserId)
 	if err != nil {
 		return nil, &ChatErrRsp{
 			Error: &ChatAPIErr{
@@ -116,14 +115,17 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 			},
 		}
 	}
+	session.consumer.Comsume(promptPrice)
 
 	// 3. ratelimit
 	qosMeta := qos.Meta{
-		Consumer: *consumer,
+		Consumer: session.consumer,
 		Model:    session.Model,
 		Provider: Provider,
 	}
 	if !qos.Allow(&qosMeta) {
+		session.consumer.Rollback()
+
 		return nil, &ChatErrRsp{
 			Error: &ChatAPIErr{
 				Type:    "rate_limit",
@@ -138,9 +140,12 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 	// force stream output
 	opts.Req.Stream = true
 
-	session.stream, err = c.CreateChatCompletionStream(opts.Ctx, openai.ChatCompletionRequest(opts.Req))
+	session.stream, err = c.CreateChatCompletionStream(
+		opts.Ctx, openai.ChatCompletionRequest(opts.Req))
 	if err != nil {
-		log.Errorf("ChatCompletionStream ERROR: %v\n", err)
+		log.Warn(err.Error())
+
+		session.revertRequest()
 
 		// request error
 		reqErr := &openai.RequestError{}
@@ -173,16 +178,6 @@ func NewChat(opts *ChatOpts) (*ChatSession, *ChatErrRsp) {
 		}
 	}
 
-	chatSession := sql.ChatSession{
-		UserID: uint(session.UserId),
-	}
-	session.db.Save(&chatSession)
-	chatMessage := sql.ChatMessage{
-		ModelDisplayName: model.DisplayName,
-		Message:          "》》",
-	}
-	session.db.Save(&chatMessage)
-
 	return &session, nil
 }
 
@@ -192,7 +187,8 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 	data, err := c.stream.Recv()
 	if err != nil {
 		price := c.OutputCoins * c.usage.CompletionTokens
-		charge.Comsume(c.UserId, price, true)
+		c.consumer.Comsume(price)
+		c.consumer.Commit()
 		if err == io.EOF {
 			return nil, err
 		} else {
@@ -204,7 +200,6 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 
 	// each response in stream regards as one token
 	c.usage.CompletionTokens += 1
-	c.message += data.Choices[0].Delta.Content
 	rsp = ChatRsp{
 		ChatCompletionStreamResponse: data,
 		Usage:                        c.usage,
@@ -215,4 +210,8 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 
 func (c *ChatSession) Close() {
 	c.stream.Close()
+}
+
+func (c *ChatSession) revertRequest() {
+	c.consumer.Rollback()
 }

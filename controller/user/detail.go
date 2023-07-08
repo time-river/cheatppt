@@ -7,12 +7,12 @@ import (
 )
 
 type Information struct {
-	ID        uint   `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	Level     int    `json:"level"`
-	Coins     int    `json:"coins"`
-	CreatedAt int64  `json:"createAt"`
+	ID        uint    `json:"id"`
+	Username  string  `json:"username"`
+	Email     string  `json:"email"`
+	Level     int     `json:"level"`
+	Credit    float32 `json:"coins"`
+	CreatedAt int64   `json:"createAt"`
 }
 
 func Detail(id int) (*Information, error) {
@@ -31,7 +31,7 @@ func Detail(id int) (*Information, error) {
 		Username:  user.Username,
 		Email:     user.Email,
 		Level:     user.Level,
-		Coins:     user.Coins,
+		Credit:    sql.Coins2RMB(user.Coins),
 		CreatedAt: user.CreatedAt.Unix(),
 	}
 

@@ -40,6 +40,7 @@ func Add(detail *AddDetail, create bool) error {
 		log.Errorf("MODEL Add ERROR: %s\n", err.Error())
 		return fmt.Errorf("内部错误")
 	}
+	CacheAdd(&model)
 
 	return nil
 }

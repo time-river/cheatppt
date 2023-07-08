@@ -18,7 +18,7 @@ type ChatGPTAccount struct {
 	PuidRfAt        time.Time
 }
 
-type ConversationMapping struct {
+type ChatGPTConversationMapping struct {
 	ID             uint   `gorm:"primarykey"`
 	ConversationId string `gorm:"uniqueIndex"`
 	AccountEmail   string
@@ -32,7 +32,7 @@ func initChatGPT() {
 		panic(err)
 	}
 
-	if err := db.AutoMigrate((&ConversationMapping{})); err != nil {
+	if err := db.AutoMigrate((&ChatGPTConversationMapping{})); err != nil {
 		panic(err)
 	}
 }

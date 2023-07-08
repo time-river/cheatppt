@@ -6,7 +6,7 @@ import (
 	"cheatppt/model/sql"
 )
 
-func Find(model, provider string) *Model {
+func FindFromSQL(model, provider string) *Model {
 	result := sql.Model{
 		DisplayName: model,
 		Provider:    provider,

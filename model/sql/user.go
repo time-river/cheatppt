@@ -8,29 +8,35 @@ type User struct {
 	Email     string `gorm:"uniqueIndex"`
 	Password  []byte
 	Level     int
-	Coins     int
+	Coins     int64 // virtual coins
 	Activated bool
 	Deleted   bool
 	CreatedAt time.Time
 	DeletedAt time.Time
 }
 
-type UserVoiceRecord struct {
-	ID            uint `gorm:"primaryKey"`
-	UserID        uint `gorm:"index"`
-	Amount        int
-	Coins         int
-	CreatedAt     time.Time
+type UserBilling struct {
+	ID            uint   `gorm:"primaryKey"`
+	UserID        uint   `gorm:"index"`
+	UUID          string `gorm:"uniqueIndex,TINYTEXT"`
+	Coins         int64  // virtual coins
+	Status        int
 	PaymentMethod string `gorm:"TINYTEXT"`
-	User          User   `gorm:"foreignKey:UserID"`
+	CreatedAt     time.Time
+	PaiedAt       time.Time
+	Comment       string
+	User          User `gorm:"foreignKey:UserID"`
 }
 
-type DailyFree struct {
-	ID     uint      `gorm:"primaryKey"`
-	UserID uint      `gorm:"index"`
-	Date   time.Time `gorm:"index"`
-	Coins  int
-	User   User `gorm:"foreignKey:UserID"`
+type UserUsage struct {
+	ID            uint        `gorm:"primaryKey"`
+	UserID        uint        `gorm:"index"`
+	ChatMessageId uint        `gorm:"index"`
+	Coins         int64       // virtual coins
+	Comment       string      // the voice detail
+	Date          time.Time   `gorm:"index"`
+	User          User        `gorm:"foreignKey:UserID"`
+	ChatMessage   ChatMessage `gorm:"foreignKey:ChatMessageId"`
 }
 
 func userTableInit() {
@@ -39,11 +45,11 @@ func userTableInit() {
 		panic(err)
 	}
 
-	if err := db.AutoMigrate(&UserVoiceRecord{}); err != nil {
+	if err := db.AutoMigrate(&UserBilling{}); err != nil {
 		panic(err)
 	}
 
-	if err := db.AutoMigrate(&DailyFree{}); err != nil {
+	if err := db.AutoMigrate(&UserUsage{}); err != nil {
 		panic(err)
 	}
 }

@@ -8,8 +8,8 @@ type Model struct {
 	DisplayName string `gorm:"unique"`
 	ModelName   string `gorm:"index"`
 	Provider    string `gorm:"index"`
-	InputCoins  int
-	OutputCoins int
+	InputCoins  int    // virtual coins
+	OutputCoins int    // virtual coins
 	Comment     string `gorm:"type:text"`
 	Activated   bool
 	CreatedAt   time.Time

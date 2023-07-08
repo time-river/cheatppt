@@ -27,7 +27,7 @@ type RevAccountManager struct {
 	revAccounts map[string]*RevAccount
 	lru         *lru.Cache[string, *RevAccount]
 
-	mu sync.RWMutex
+	mu *sync.RWMutex
 }
 
 const (
@@ -52,7 +52,7 @@ func (m *RevAccountManager) SetRevAccount(conversationId, email string) {
 
 	m.redis.Set(ctx, key, val, PERIOD_DAY*time.Second)
 
-	account := sql.ConversationMapping{
+	account := sql.ChatGPTConversationMapping{
 		ConversationId: key,
 		AccountEmail:   val,
 	}
@@ -84,7 +84,7 @@ func (m *RevAccountManager) GetRevAccountByConversationId(conversationId string)
 		return nil, err
 	} else if err == redis.Nil {
 		// not found record in redis, try SQL
-		var mapping sql.ConversationMapping
+		var mapping sql.ChatGPTConversationMapping
 
 		if err := m.db.First(&mapping, key).Error; err != nil {
 			// sql error
@@ -166,7 +166,7 @@ func revAccountsSetup() {
 		revAccounts: make(map[string]*RevAccount),
 		lru:         lru,
 
-		mu: sync.RWMutex{},
+		mu: &sync.RWMutex{},
 	}
 
 	for _, account := range accounts {

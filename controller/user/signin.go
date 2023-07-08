@@ -44,5 +44,6 @@ func SignIn(username, passwd string) (*SignInData, error) {
 
 	log.Trace(pretty.Sprint(data))
 
+	cacheUserMgr.add(&user)
 	return data, nil
 }

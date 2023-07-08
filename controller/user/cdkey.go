@@ -17,14 +17,14 @@ import (
 type CDKeyMeta struct {
 	Nr      int
 	Comment string
-	Coins   int
+	Credit  float32
 	Expire  int
 }
 
 type CDKeyClaims struct {
-	Coins     int    `json:"coins"`
-	Comment   string `json:"comment"`
-	NotBefore int    `json:"notBefore"` // unix time
+	Credit    float32 `json:"credit"`
+	Comment   string  `json:"comment"`
+	NotBefore int     `json:"notBefore"` // unix time
 }
 
 type CDKeyDetail struct {
@@ -56,7 +56,7 @@ func GenCDKeys(meta *CDKeyMeta) ([]string, error) {
 	}
 
 	claims := &CDKeyClaims{
-		Coins:     meta.Coins,
+		Credit:    meta.Credit,
 		Comment:   meta.Comment,
 		NotBefore: meta.Expire,
 	}
@@ -113,7 +113,7 @@ func ExgCDkey(cdkey string, userId int) error {
 			return err
 		}
 
-		user.Coins += claims.Coins
+		user.Coins += sql.RMB2Coins(claims.Credit)
 		tx.Save(&user)
 		return nil
 	})

@@ -12,10 +12,10 @@ import (
 )
 
 type GenCDKeyReq struct {
-	Number  int    `json:"number"`
-	Comment string `json:"comment"`
-	Coins   int    `json:"coins"`
-	Expire  int    `json:"expire"`
+	Number  int     `json:"number"`
+	Comment string  `json:"comment"`
+	Credit  float32 `json:"credit"`
+	Expire  int     `json:"expire"`
 }
 
 // generate cd-key
@@ -31,10 +31,16 @@ func GenCDKey(c *gin.Context) {
 
 	log.Debug(pretty.Sprint(req))
 
+	if req.Number <= 0 || req.Credit <= 0 {
+		rsp.Message = "非法请求"
+		c.AbortWithStatusJSON(http.StatusBadRequest, rsp)
+		return
+	}
+
 	meta := user.CDKeyMeta{
 		Nr:      req.Number,
 		Comment: req.Comment,
-		Coins:   req.Coins,
+		Credit:  req.Credit,
 		Expire:  req.Expire,
 	}
 	data, err := user.GenCDKeys(&meta)

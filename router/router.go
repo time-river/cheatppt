@@ -21,8 +21,10 @@ const (
 	userCDKey     = "/exgcdkey"
 	userGenCDKey  = "/gencdkey"
 	userListCDKey = "/listcdkeys"
-	userPay       = "/pay"
+	userTopup     = "/topup"
 	userBalance   = "/balance"
+	userBilling   = "/billing"
+	userUsage     = "/usage"
 )
 
 const (
@@ -63,6 +65,11 @@ func Initialize(router *gin.Engine) {
 
 		user.POST(userGenCDKey, userapiv1.AdminGuard, userapiv1.GenCDKey)
 		user.GET(userListCDKey, userapiv1.AdminGuard, userapiv1.ListCDKeys)
+
+		user.POST(userTopup)
+		user.GET(userBalance, userapiv1.SessionGuard, userapiv1.Balance)
+		user.GET(userBilling, userapiv1.SessionGuard)
+		user.GET(userUsage, userapiv1.SessionGuard)
 	}
 
 	model := router.Group(modelApiPrefix)
