@@ -7,7 +7,7 @@ import (
 )
 
 func Setup() {
-	revchatgpt3.Setup()
 	model.Setup()
+	revchatgpt3.Setup()
 	user.Setup()
 }

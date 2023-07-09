@@ -1,6 +1,10 @@
 package sql
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
 	ID        uint   `gorm:"primaryKey,AUTO_INCREMENT=100"`
@@ -16,10 +20,9 @@ type User struct {
 }
 
 type UserBilling struct {
-	ID            uint   `gorm:"primaryKey"`
-	UserID        uint   `gorm:"index"`
-	UUID          string `gorm:"uniqueIndex,TINYTEXT"`
-	Coins         int64  // virtual coins
+	UUID          uuid.UUID `gorm:"primaryKey;type:uuid"`
+	UserID        uint      `gorm:"index"`
+	Coins         int64     // virtual coins
 	Status        int
 	PaymentMethod string `gorm:"TINYTEXT"`
 	CreatedAt     time.Time
@@ -29,13 +32,13 @@ type UserBilling struct {
 }
 
 type UserUsage struct {
-	ID            uint        `gorm:"primaryKey"`
+	UUID          uuid.UUID `gorm:"primaryKey;type:uuid"`
+	Coins         int64     // virtual coins
+	Comment       string    // the voice detail
+	CreatedAt     time.Time
 	UserID        uint        `gorm:"index"`
-	ChatMessageId uint        `gorm:"index"`
-	Coins         int64       // virtual coins
-	Comment       string      // the voice detail
-	Date          time.Time   `gorm:"index"`
 	User          User        `gorm:"foreignKey:UserID"`
+	ChatMessageId uuid.UUID   `gorm:"index;type:uuid"`
 	ChatMessage   ChatMessage `gorm:"foreignKey:ChatMessageId"`
 }
 

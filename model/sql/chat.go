@@ -1,23 +1,28 @@
 package sql
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/datatypes"
+)
 
 type ChatSession struct {
-	ID     uint `gorm:"primaryKey,AUTO_INCREMENT=100"`
-	UserID uint `gorm:"index"`
-	User   User `gorm:"foreignKey:UserID"`
+	UUID   uuid.UUID `gorm:"primaryKey;type:uuid"`
+	UserID uint      `gorm:"index"`
+	User   User      `gorm:"foreignKey:UserID"`
 }
 
 type ChatMessage struct {
-	ID               uint `gorm:"primaryKey,AUTO_INCREMENT=100"`
-	ChatSessionID    uint `gorm:"index"`
-	ModelDisplayName string
-	Prompt           string      `gorm:"type:text"`
-	Message          string      `gorm:"type:text"`
-	CreatedAt        time.Time   `gorm:"index"`
-	ChatSession      ChatSession `gorm:"foreignKey:ChatSessionID"`
-	Model            Model       `gorm:"foreignKey:ModelDisplayName"`
-	Deleted          bool
+	UUID          uuid.UUID `gorm:"primaryKey;type:uuid"`
+	ModelName     string
+	Provider      string
+	Messages      datatypes.JSON
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	ChatSessionId uuid.UUID   `gorm:"type:uuid"`
+	ChatSession   ChatSession `gorm:"foreignKey:ChatSessionId"`
+	Deleted       bool
 }
 
 func chatTableInit() {

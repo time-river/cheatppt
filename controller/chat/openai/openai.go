@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -19,6 +20,7 @@ import (
 
 type ChatRsp struct {
 	openai.ChatCompletionStreamResponse
+	UUID  string      `json:"uuid"`
 	Usage token.Usage `json:"usage"`
 }
 
@@ -188,7 +190,8 @@ func (c *ChatSession) Recv() (*ChatRsp, error) {
 	if err != nil {
 		price := c.OutputCoins * c.usage.CompletionTokens
 		c.consumer.Comsume(price)
-		c.consumer.Commit()
+		comment := fmt.Sprintf("provider %s model %s, prompt tokens: %d, completion tokens: %d", Provider, c.Model, c.usage.PromptTokens, c.usage.CompletionTokens)
+		c.consumer.Commit(comment)
 		if err == io.EOF {
 			return nil, err
 		} else {

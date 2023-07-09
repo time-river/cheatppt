@@ -16,6 +16,8 @@ import (
 
 type ChatReq struct {
 	openaiapi.ChatCompletionRequest
+
+	UUID *string `json:"uuid,omitempty"`
 }
 
 func Chat(c *gin.Context) {

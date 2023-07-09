@@ -13,13 +13,13 @@ import (
 )
 
 func main() {
+	// TODO: env check
+	sql.DatabaseInit()
+
 	config.CmdlineParse()
 
 	debug := log.Setup()
 	controller.Setup()
-
-	// TODO: env check
-	sql.DatabaseInit()
 
 	engine := gin.New()
 	if !debug {

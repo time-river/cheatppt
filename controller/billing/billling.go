@@ -52,7 +52,7 @@ func GetBillings(rng *Range) ([]BillingItem, error) {
 
 	for i, record := range records {
 		data[i] = BillingItem{
-			UUID:          record.UUID,
+			UUID:          record.UUID.String(),
 			Credit:        sql.Coins2RMB(record.Coins),
 			Status:        billingStatus(record.Status).String(),
 			PaymentMethod: record.PaymentMethod,
