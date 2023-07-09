@@ -10,21 +10,22 @@ import (
 )
 
 const (
-	userApiPrefix = "/api/v1/user"
-	userReset     = "/reset"
-	userCode      = "/code"
-	userSignUp    = "/signup"
-	userSignIn    = "/signin"
-	userSignOut   = "/signout"
-	userPing      = "/ping"
-	userDetail    = "/detail"
-	userCDKey     = "/exgcdkey"
-	userGenCDKey  = "/gencdkey"
-	userListCDKey = "/listcdkeys"
-	userTopup     = "/topup"
-	userBalance   = "/balance"
-	userBilling   = "/billing"
-	userUsage     = "/usage"
+	userApiPrefix     = "/api/v1/user"
+	userReset         = "/reset"
+	userCode          = "/code"
+	userSignUp        = "/signup"
+	userSignIn        = "/signin"
+	userSignOut       = "/signout"
+	userPing          = "/ping"
+	userDetail        = "/detail"
+	userCDKey         = "/exgcdkey"
+	userGenCDKey      = "/gencdkey"
+	userListCDKey     = "/listcdkeys"
+	userTopup         = "/topup"
+	userBalance       = "/balance"
+	userBilling       = "/billing"
+	userUsage         = "/usage"
+	userCreateSession = "/createsession"
 )
 
 const (
@@ -70,6 +71,7 @@ func Initialize(router *gin.Engine) {
 		user.GET(userBalance, userapiv1.SessionGuard, userapiv1.Balance)
 		user.GET(userBilling, userapiv1.SessionGuard)
 		user.GET(userUsage, userapiv1.SessionGuard)
+		user.GET(userCreateSession, userapiv1.SessionGuard, userapiv1.CreateChatSession)
 	}
 
 	model := router.Group(modelApiPrefix)

@@ -25,7 +25,7 @@ func GetUsages(rng *Range) ([]UsageItem, error) {
 	for i, r := range records {
 		data[i] = UsageItem{
 			Amount:  sql.Coins2RMB(r.Coins),
-			Date:    r.Date.Unix(),
+			Date:    r.CreatedAt.Unix(),
 			Comment: r.Comment,
 		}
 	}

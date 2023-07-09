@@ -2,10 +2,12 @@ package billing
 
 import (
 	"sync/atomic"
+	"time"
 
 	"cheatppt/controller/user"
 	"cheatppt/model/sql"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -42,7 +44,7 @@ func (c *Consumer) Comsume(price int) {
 	atomic.AddInt64(&c.user.Coins, int64(-price))
 }
 
-func (c *Consumer) Commit() {
+func (c *Consumer) Commit(comment string) {
 	if c.Free {
 		return
 	}
@@ -57,6 +59,15 @@ func (c *Consumer) Commit() {
 
 		user.Coins -= int64(c.Coins)
 		tx.Save(&user)
+
+		usage := sql.UserUsage{
+			UserID:        c.user.ID,
+			ChatMessageId: uuid.Must(uuid.NewRandom()),
+			Coins:         int64(c.Coins),
+			CreatedAt:     time.Now(),
+			Comment:       comment,
+		}
+		tx.Save(&usage)
 		return nil
 	})
 }
