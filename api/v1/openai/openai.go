@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/kr/pretty"
 	openaiapi "github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
@@ -17,7 +18,7 @@ import (
 type ChatReq struct {
 	openaiapi.ChatCompletionRequest
 
-	UUID *string `json:"uuid,omitempty"`
+	SessionId string `json:"sessionId"`
 }
 
 func Chat(c *gin.Context) {
@@ -42,6 +43,19 @@ func Chat(c *gin.Context) {
 		UserId: c.GetInt(userapiv1.UserId),
 		Model:  req.Model,
 		Req:    req.ChatCompletionRequest,
+	}
+
+	if id, err := uuid.Parse(req.SessionId); err != nil {
+		rsp := &openai.ChatErrRsp{
+			Error: &openai.ChatAPIErr{
+				Type: "invalid_request_error",
+				Code: "invalid uuid",
+			},
+		}
+		c.JSON(http.StatusOK, rsp)
+		return
+	} else {
+		opts.SessionId = id
 	}
 
 	session, err := openai.NewChat(&opts)

@@ -1,11 +1,12 @@
 package userapiv1
 
 import (
-	"cheatppt/api"
-	"cheatppt/controller/user"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"cheatppt/api"
+	user "cheatppt/controller/user/session"
 )
 
 func CreateChatSession(c *gin.Context) {

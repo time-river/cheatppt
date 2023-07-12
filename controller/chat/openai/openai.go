@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/kr/pretty"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
@@ -31,10 +32,11 @@ type ChatErrRsp struct {
 }
 
 type ChatOpts struct {
-	Ctx    context.Context
-	UserId int
-	Model  string
-	Req    openai.ChatCompletionRequest
+	Ctx       context.Context
+	SessionId uuid.UUID
+	UserId    int
+	Model     string
+	Req       openai.ChatCompletionRequest
 }
 
 type ChatSession struct {
